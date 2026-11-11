@@ -1,7 +1,7 @@
 -- =============================================================================
 -- Seed: catálogo de ações do protocolo por bandeira + dados de exemplo
 -- As ações são CUMULATIVAS: na AMARELA valem as da VERDE; na VERMELHA, todas.
--- Revisar a redação contra o texto oficial do protocolo SEDUC/PA 2026-2027.
+-- Revisar a redação contra o texto oficial do protocolo 2026-2027.
 -- =============================================================================
 
 insert into protocolo_acoes (cor, codigo, titulo, descricao, obrigatoria, diaria, ordem) values
@@ -34,8 +34,8 @@ insert into protocolo_acoes (cor, codigo, titulo, descricao, obrigatoria, diaria
  'Contabilizar no checklist e acionar a rede de saúde via DRE quando necessário.', true, true, 30),
 ('vermelha', 'VRM-ORGAOS',       'Articular órgãos de emergência via DRE',
  'Defesa Civil, Corpo de Bombeiros, SAMU — registrar o acionamento em memorando.', true, false, 40),
-('vermelha', 'VRM-REGIME',       'Aplicar o regime pedagógico definido pela SEDUC',
- 'Atividades não presenciais/CEMEP somente após validação formal da SEDUC.', true, false, 50);
+('vermelha', 'VRM-REGIME',       'Aplicar o regime pedagógico definido pela Gestão Estadual',
+ 'Atividades não presenciais/CEMEP somente após validação formal da Gestão Estadual.', true, false, 50);
 
 -- Dados de exemplo (fictícios) para desenvolvimento local
 insert into dres (id, codigo, nome) values

@@ -19,8 +19,8 @@ test('área restrita sem sessão vai ao login preservando destino', () => {
 });
 
 test('perfil errado volta para a própria área', () => {
-  assert.deepEqual(rota('/seduc/bandeiras', true, 'escola'), { tipo: 'redirecionar', para: '/escola' });
-  assert.deepEqual(rota('/dre', true, 'seduc'), { tipo: 'redirecionar', para: '/seduc' });
+  assert.deepEqual(rota('/estadual/bandeiras', true, 'escola'), { tipo: 'redirecionar', para: '/escola' });
+  assert.deepEqual(rota('/dre', true, 'estadual'), { tipo: 'redirecionar', para: '/estadual' });
   assert.deepEqual(rota('/escola', true, 'escola'), { tipo: 'seguir' });
 });
 
@@ -30,7 +30,7 @@ test('prefixo exige segmento completo', () => {
 });
 
 test('perfil inválido nas claims é tratado como ausente', () => {
-  assert.deepEqual(rota('/seduc', true, 'admin'), { tipo: 'redirecionar', para: '/entrar?erro=sem_perfil' });
+  assert.deepEqual(rota('/estadual', true, 'admin'), { tipo: 'redirecionar', para: '/entrar?erro=sem_perfil' });
 });
 
 test('login com sessão válida pula para a área', () => {

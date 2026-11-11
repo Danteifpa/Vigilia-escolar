@@ -2,17 +2,17 @@ import { Badge, Card, CardHeader } from '@/components/ui';
 import { exigirPerfil } from '@/modules/auth/sessao';
 
 /**
- * Resumo provisório das áreas DRE/SEDUC (os painéis completos são a Fase 4).
- * Os números já respeitam a RLS: DRE vê o seu polo; SEDUC vê o estado.
+ * Resumo provisório das áreas DRE/Gestão Estadual (os painéis completos são a Fase 4).
+ * Os números já respeitam a RLS: DRE vê o seu polo; Gestão Estadual vê o estado.
  */
 export async function ResumoInicial() {
-  const { db, perfil } = await exigirPerfil('dre', 'seduc');
+  const { db, perfil } = await exigirPerfil('dre', 'estadual');
   const conta = (q: PromiseLike<{ count: number | null }>) => q.then((r) => r.count ?? 0);
 
-  const [escolas, aguardando, naSeduc, amarelas, vermelhas] = await Promise.all([
+  const [escolas, aguardando, naGestaoEstadual, amarelas, vermelhas] = await Promise.all([
     conta(db.from('escolas').select('id', { count: 'exact', head: true })),
     conta(db.from('memorandos_ocorrencia').select('id', { count: 'exact', head: true }).in('status', ['enviado', 'em_analise_dre'])),
-    conta(db.from('memorandos_ocorrencia').select('id', { count: 'exact', head: true }).eq('status', 'encaminhado_seduc')),
+    conta(db.from('memorandos_ocorrencia').select('id', { count: 'exact', head: true }).eq('status', 'encaminhado_estadual')),
     conta(db.from('vw_bandeira_vigente').select('escola_id', { count: 'exact', head: true }).eq('cor', 'amarela')),
     conta(db.from('vw_bandeira_vigente').select('escola_id', { count: 'exact', head: true }).eq('cor', 'vermelha')),
   ]);
@@ -22,7 +22,7 @@ export async function ResumoInicial() {
     { rotulo: 'Bandeira amarela', valor: amarelas, tom: 'alerta' as const },
     { rotulo: 'Bandeira vermelha', valor: vermelhas, tom: 'perigo' as const },
     { rotulo: perfil.perfil === 'dre' ? 'Memorandos aguardando a DRE' : 'Memorandos nas DREs', valor: aguardando },
-    { rotulo: 'Memorandos na SEDUC', valor: naSeduc },
+    { rotulo: 'Memorandos na Gestão Estadual', valor: naGestaoEstadual },
   ];
 
   return (

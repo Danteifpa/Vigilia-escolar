@@ -10,9 +10,9 @@ interface LinhaUsuario {
   dre: { nome: string } | null;
 }
 
-/** Lista (recortada pela RLS) + convite. Compartilhado por /seduc/usuarios e /dre/usuarios. */
+/** Lista (recortada pela RLS) + convite. Compartilhado por /estadual/usuarios e /dre/usuarios. */
 export async function GestaoUsuarios() {
-  const { db, perfil: ator } = await exigirPerfil('seduc', 'dre');
+  const { db, perfil: ator } = await exigirPerfil('estadual', 'dre');
 
   const [usuarios, escolas, dres] = await Promise.all([
     db.from('users')
@@ -50,7 +50,7 @@ export async function GestaoUsuarios() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {(usuarios.data ?? []).map((u) => {
-                const podeAlterar = u.id !== ator.id && (ator.perfil === 'seduc' || u.perfil === 'escola');
+                const podeAlterar = u.id !== ator.id && (ator.perfil === 'estadual' || u.perfil === 'escola');
                 return (
                   <tr key={u.id}>
                     <td className="px-5 py-3">

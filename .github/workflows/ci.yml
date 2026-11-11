@@ -75,7 +75,7 @@ jobs:
           } >> "$GITHUB_ENV"
           echo "Variáveis disponíveis:"; cut -d= -f1 /tmp/supabase.env
 
-      - name: Criar usuários de teste (escola, DRE, SEDUC)
+      - name: Criar usuários de teste (escola, DRE, Gestão Estadual)
         run: npm run dev:usuarios
 
       - name: Conferir login e perfil no token

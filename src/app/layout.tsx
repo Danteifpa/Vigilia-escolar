@@ -3,7 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Vigília Escolar PA',
-  description: 'Protocolo de Gestão e Resposta aos Efeitos do El Niño — SEDUC/PA',
+  description: 'Gestão e resposta a riscos climáticos nas escolas',
   applicationName: 'Vigília Escolar PA',
 };
 export const viewport: Viewport = { themeColor: '#0f172a', width: 'device-width', initialScale: 1 };

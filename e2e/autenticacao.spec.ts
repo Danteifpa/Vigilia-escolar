@@ -56,7 +56,7 @@ test('escola entra no próprio painel e não acessa outras áreas', async ({ pag
   await expect(page).toHaveURL('/escola');
   await expect(page.getByRole('heading', { name: /BANDEIRA VERDE/ })).toBeVisible();
 
-  for (const outra of ['/seduc', '/dre/usuarios', '/entrar']) {
+  for (const outra of ['/estadual', '/dre/usuarios', '/entrar']) {
     await page.goto(outra);
     await expect(page).toHaveURL('/escola');
   }
@@ -65,12 +65,12 @@ test('escola entra no próprio painel e não acessa outras áreas', async ({ pag
   await expect(page).toHaveURL(/\/entrar\?proximo=/);
 });
 
-test('SEDUC entra no painel estadual', async ({ page }) => {
-  await entrar(page, 'seduc@vigilia.dev');
-  await expect(page).toHaveURL('/seduc');
+test('Gestão Estadual entra no painel estadual', async ({ page }) => {
+  await entrar(page, 'estadual@vigilia.dev');
+  await expect(page).toHaveURL('/estadual');
   await expect(page.getByText('Escolas', { exact: true })).toBeVisible();
   await page.goto('/escola');
-  await expect(page).toHaveURL('/seduc');
+  await expect(page).toHaveURL('/estadual');
 });
 
 test('DRE convida diretor; convidado define senha e cai no painel da escola', async ({ page }) => {

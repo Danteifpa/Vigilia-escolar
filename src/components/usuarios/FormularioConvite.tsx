@@ -34,12 +34,12 @@ export function FormularioConvite({ ator, escolas, dres }: Opcoes & { ator: Perf
         <Input {...ariaCampo('email', e.email)} name="email" type="email" autoComplete="off" />
       </Field>
 
-      {ator === 'seduc' ? (
+      {ator === 'estadual' ? (
         <Field id="perfil" rotulo="Perfil" erro={e.perfil} obrigatorio>
           <Select {...ariaCampo('perfil', e.perfil)} name="perfil" value={perfil} onChange={(ev) => setPerfil(ev.target.value as Perfil)}>
             <option value="escola">Escola (direção / gestão)</option>
             <option value="dre">DRE</option>
-            <option value="seduc">SEDUC / Comitê de Crise</option>
+            <option value="estadual">Gestão Estadual</option>
           </Select>
         </Field>
       ) : (
@@ -52,7 +52,7 @@ export function FormularioConvite({ ator, escolas, dres }: Opcoes & { ator: Perf
 
       {perfil === 'escola' && (
         <>
-          {ator === 'seduc' && (
+          {ator === 'estadual' && (
             <Field id="filtro_dre" rotulo="DRE da escola" dica="Filtra a lista de escolas">
               <Select {...ariaCampo('filtro_dre')} value={dreFiltro} onChange={(ev) => setDreFiltro(ev.target.value)}>
                 <option value="">Todas</option>
