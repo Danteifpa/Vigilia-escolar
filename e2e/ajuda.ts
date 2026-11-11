@@ -2,11 +2,13 @@ import { expect, type Page } from '@playwright/test';
 
 export const SENHA = process.env.SENHA_DEV ?? 'SenhaDev2026';
 
-export async function entrar(page: Page, email: string, senha = SENHA) {
+/** Faz login e, por padrão, espera sair da tela de login (evita corrida com o próximo goto). */
+export async function entrar(page: Page, email: string, senha = SENHA, { esperar = true } = {}) {
   await page.goto('/entrar');
   await page.getByLabel('E-mail').fill(email);
   await page.getByLabel('Senha').fill(senha);
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+  if (esperar) await page.waitForURL((u) => !u.pathname.startsWith('/entrar'));
 }
 
 export async function sair(page: Page) {

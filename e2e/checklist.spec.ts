@@ -13,9 +13,8 @@ test.afterEach(async ({ page }, info) => {
 test('escola preenche o checklist e o painel mostra as condições do dia', async ({ page }) => {
   await entrar(page, 'escola@vigilia.dev');
   await expect(page).toHaveURL('/escola');
-  await expect(page.getByText('Preencha o checklist de hoje')).toBeVisible();
-
-  await page.getByRole('link', { name: 'Preencher', exact: true }).click();
+  // "Preencher" no banco limpo; "Atualizar" se uma tentativa anterior já salvou
+  await page.getByRole('link', { name: /^(Preencher|Atualizar)$/ }).click();
   await expect(page).toHaveURL('/escola/checklist');
 
   await escolher(page, 'Situação do abastecimento', 'Reduzida');
@@ -25,7 +24,7 @@ test('escola preenche o checklist e o painel mostra as condições do dia', asyn
   await escolher(page, 'Situação de acesso', 'Normal');
   await page.getByLabel('Alunos presentes', { exact: true }).fill('600');
   await page.getByLabel('Alunos com sintomas', { exact: true }).fill('2');
-  await page.getByText('Verificar reservatório e abastecimento de água').click();
+  await page.getByRole('checkbox', { name: /Verificar reservatório e abastecimento/ }).check();
   await page.getByRole('button', { name: 'Salvar checklist' }).click();
 
   await expect(page).toHaveURL('/escola');

@@ -32,7 +32,7 @@ test('sem sessão, área restrita leva ao login guardando o destino', async ({ p
 });
 
 test('senha errada mostra mensagem em português', async ({ page }) => {
-  await entrar(page, 'escola@vigilia.dev', 'SenhaErrada123');
+  await entrar(page, 'escola@vigilia.dev', 'SenhaErrada123', { esperar: false });
   await expect(alerta(page, 'E-mail ou senha incorretos.')).toBeVisible();
 });
 
