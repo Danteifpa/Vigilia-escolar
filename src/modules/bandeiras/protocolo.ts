@@ -2,7 +2,7 @@ import type { CorBandeira, RegimePedagogico } from '@/types/dominio';
 
 /**
  * Metadados de apresentação das bandeiras. As AÇÕES vêm do banco
- * (`protocolo_acoes`) para que a SEDUC ajuste o protocolo sem novo deploy.
+ * (`protocolo_acoes`) para que a Gestão Estadual ajuste o protocolo sem novo deploy.
  * Classes Tailwind escritas por extenso para não serem removidas no build.
  */
 export const BANDEIRAS: Record<

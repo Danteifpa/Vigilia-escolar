@@ -1,6 +1,6 @@
 -- =============================================================================
 -- Vigília Escolar PA — Migration 001: schema inicial
--- Protocolo de Gestão e Resposta aos Efeitos do El Niño nas Escolas (SEDUC/PA 2026-2027)
+-- Protocolo de Gestão e Resposta aos Efeitos do El Niño nas Escolas (2026-2027)
 -- Alvo: PostgreSQL 15+ (Supabase). Depende do schema `auth` do Supabase (auth.users, auth.uid()).
 -- =============================================================================
 
@@ -9,7 +9,7 @@ create schema if not exists app;   -- funções auxiliares internas (helpers de 
 -- -----------------------------------------------------------------------------
 -- Tipos de domínio
 -- -----------------------------------------------------------------------------
-create type perfil_usuario     as enum ('escola', 'dre', 'seduc');
+create type perfil_usuario     as enum ('escola', 'dre', 'estadual');
 create type cor_bandeira       as enum ('verde', 'amarela', 'vermelha');
 create type escopo_bandeira    as enum ('municipio', 'escola');
 create type regime_pedagogico  as enum ('presencial', 'presencial_adaptado', 'nao_presencial', 'cemep');
@@ -22,7 +22,7 @@ create type status_memorando   as enum (
   'enviado',            -- despachado pela escola, aguardando recebimento da DRE
   'em_analise_dre',     -- DRE recebeu e está tratando / articulando Defesa Civil, Saúde
   'devolvido',          -- DRE devolveu à escola para complementação
-  'encaminhado_seduc',  -- pedido extraordinário encaminhado à SEDUC / Comitê de Crise
+  'encaminhado_estadual',  -- pedido extraordinário encaminhado à Gestão Estadual
   'atendido',           -- demanda atendida
   'arquivado'
 );
@@ -90,7 +90,7 @@ create table users (
   constraint users_vinculo_por_perfil check (
        (perfil = 'escola' and escola_id is not null and dre_id is null)
     or (perfil = 'dre'    and dre_id    is not null and escola_id is null)
-    or (perfil = 'seduc'  and dre_id    is null     and escola_id is null)
+    or (perfil = 'estadual'  and dre_id    is null     and escola_id is null)
   )
 );
 create index users_escola_idx on users (escola_id);
@@ -113,7 +113,7 @@ create table protocolo_acoes (
 create index protocolo_acoes_cor_idx on protocolo_acoes (cor, ordem) where ativo;
 
 -- -----------------------------------------------------------------------------
--- Histórico de bandeiras (append-only; decretação exclusiva da SEDUC)
+-- Histórico de bandeiras (append-only; decretação exclusiva da Gestão Estadual)
 -- -----------------------------------------------------------------------------
 create table historico_bandeiras (
   id                 uuid primary key default gen_random_uuid(),
@@ -133,7 +133,7 @@ create table historico_bandeiras (
     or (escopo = 'escola'    and escola_id    is not null and municipio_id is null)
   ),
   constraint hb_periodo_valido check (vigente_ate is null or vigente_ate > vigente_desde),
-  -- Atividades não presenciais / CEMEP só sob bandeira vermelha (validação SEDUC)
+  -- Atividades não presenciais / CEMEP só sob bandeira vermelha (validação estadual)
   constraint hb_regime_coerente check (
     regime_pedagogico in ('presencial', 'presencial_adaptado') or cor = 'vermelha'
   )

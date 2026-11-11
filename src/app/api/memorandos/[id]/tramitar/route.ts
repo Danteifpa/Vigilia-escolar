@@ -5,8 +5,8 @@ import { tramitarMemorando } from '@/modules/ocorrencias/repositorio';
 
 /**
  * POST /api/memorandos/:id/tramitar  { acao, parecer? }
- * DRE:   receber | devolver | encaminhar_seduc | atender | arquivar
- * SEDUC: devolver (volta à DRE) | atender | arquivar
+ * DRE:   receber | devolver | encaminhar_estadual | atender | arquivar
+ * Gestão Estadual: devolver (volta à DRE) | atender | arquivar
  * Transições e exigência de parecer: tabela `memorando_transicoes`.
  */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {

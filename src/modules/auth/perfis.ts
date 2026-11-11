@@ -3,27 +3,27 @@
  * no servidor e nos testes, sem depender do Supabase.
  * A AUTORIZAÇÃO de dados é feita pela RLS; aqui é só para onde cada um vai.
  */
-export type Perfil = 'escola' | 'dre' | 'seduc';
+export type Perfil = 'escola' | 'dre' | 'estadual';
 
-export const PERFIS: readonly Perfil[] = ['escola', 'dre', 'seduc'];
+export const PERFIS: readonly Perfil[] = ['escola', 'dre', 'estadual'];
 
 export const HOME_DO_PERFIL: Record<Perfil, string> = {
   escola: '/escola',
   dre: '/dre',
-  seduc: '/seduc',
+  estadual: '/estadual',
 };
 
 export const ROTULO_PERFIL: Record<Perfil, string> = {
   escola: 'Escola',
   dre: 'DRE',
-  seduc: 'SEDUC / Comitê de Crise',
+  estadual: 'Gestão Estadual',
 };
 
 /** Áreas restritas e quem pode acessá-las. */
 const AREAS: { prefixo: string; perfis: readonly Perfil[] }[] = [
   { prefixo: '/escola', perfis: ['escola'] },
   { prefixo: '/dre', perfis: ['dre'] },
-  { prefixo: '/seduc', perfis: ['seduc'] },
+  { prefixo: '/estadual', perfis: ['estadual'] },
 ];
 
 /** Exigem sessão, mas não um perfil específico. */

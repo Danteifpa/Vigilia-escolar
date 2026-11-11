@@ -7,7 +7,7 @@ import { exigirPerfil } from '@/modules/auth/sessao';
 
 /**
  * Provisionamento de contas (não há autocadastro).
- *  - SEDUC convida qualquer perfil.
+ *  - Gestão Estadual convida qualquer perfil.
  *  - DRE convida apenas usuários de escolas do seu polo.
  * A permissão é checada com o cliente do próprio usuário (RLS); só depois o
  * cliente admin (service role) cria a conta no Auth e o perfil em `users`.
@@ -18,7 +18,7 @@ const conviteSchema = z
   .object({
     nome: z.string().trim().min(3, 'Informe o nome completo').max(120),
     email: z.string().trim().toLowerCase().email('E-mail inválido'),
-    perfil: z.enum(['escola', 'dre', 'seduc'], { message: 'Escolha o perfil' }),
+    perfil: z.enum(['escola', 'dre', 'estadual'], { message: 'Escolha o perfil' }),
     escola_id: z.preprocess(vazioParaUndefined, z.string().uuid().optional()),
     dre_id: z.preprocess(vazioParaUndefined, z.string().uuid().optional()),
     cargo: z.preprocess(vazioParaUndefined, z.string().trim().max(80).optional()),
@@ -35,7 +35,7 @@ export interface EstadoConvite {
 }
 
 export async function convidarUsuario(_anterior: EstadoConvite, formData: FormData): Promise<EstadoConvite> {
-  const { db, perfil: ator } = await exigirPerfil('seduc', 'dre');
+  const { db, perfil: ator } = await exigirPerfil('estadual', 'dre');
 
   const parse = conviteSchema.safeParse(Object.fromEntries(formData));
   if (!parse.success) {
@@ -97,7 +97,7 @@ export async function convidarUsuario(_anterior: EstadoConvite, formData: FormDa
 
 /** Ativa/desativa acesso: bloqueia o login no Auth e a RLS (users.ativo). */
 export async function alterarAcesso(formData: FormData): Promise<void> {
-  const { db, perfil: ator } = await exigirPerfil('seduc', 'dre');
+  const { db, perfil: ator } = await exigirPerfil('estadual', 'dre');
   const id = z.string().uuid().parse(formData.get('id'));
   const ativo = formData.get('ativo') === 'true';
   if (id === ator.id) return;

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * Memorando de Ocorrência — Anexo I do Protocolo SEDUC/PA.
+ * Memorando de Ocorrência — Anexo I do Protocolo.
  * Um único schema serve ao formulário (cliente/offline) e à API (servidor).
  */
 export const TIPOS_AMEACA = ['fumaca_queimadas', 'estiagem_agua', 'outros'] as const;
@@ -56,7 +56,7 @@ export const memorandoCompletoSchema = camposAnexoI
   })
   .refine(outrosDescrito, msgOutros);
 
-export const ACOES_TRAMITACAO = ['receber', 'devolver', 'encaminhar_seduc', 'atender', 'arquivar'] as const;
+export const ACOES_TRAMITACAO = ['receber', 'devolver', 'encaminhar_estadual', 'atender', 'arquivar'] as const;
 export const tramitarSchema = z.object({
   acao: z.enum(ACOES_TRAMITACAO),
   parecer: z.string().trim().max(4000).optional(),

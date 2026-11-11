@@ -30,7 +30,7 @@ await db.exec(`
    ('${U.E1}','Dir. Escola 1','e1@x','escola','00000000-0000-0000-0000-00000000e501',null),
    ('${U.E2}','Dir. Escola 2','e2@x','escola','00000000-0000-0000-0000-00000000e502',null),
    ('${U.D}','Coord DRE','d@x','dre',null,'00000000-0000-0000-0000-0000000000d6'),
-   ('${U.S}','Comitê','s@x','seduc',null,null);
+   ('${U.S}','Comitê','s@x','estadual',null,null);
 `);
 
 const as = async (who, sql, params = []) => {
@@ -65,12 +65,12 @@ r.rows.length === 0 ? ok('outra escola não vê o memorando') : fail('vazamento 
 
 r = await as('D', `select status from tramitar_memorando($1,'receber')`, [M]);
 ok(`DRE recebeu → ${r.rows[0].status}`);
-await expectErr('DRE encaminha sem parecer', () => as('D', `select * from tramitar_memorando($1,'encaminhar_seduc')`, [M]), '23514');
+await expectErr('DRE encaminha sem parecer', () => as('D', `select * from tramitar_memorando($1,'encaminhar_estadual')`, [M]), '23514');
 await expectErr('DRE ação inválida (arquivar em análise)', () => as('D', `select * from tramitar_memorando($1,'arquivar')`, [M]), '55000');
-r = await as('D', `select status from tramitar_memorando($1,'encaminhar_seduc','Pedido de purificadores de ar')`, [M]);
+r = await as('D', `select status from tramitar_memorando($1,'encaminhar_estadual','Pedido de purificadores de ar')`, [M]);
 ok(`DRE encaminhou → ${r.rows[0].status}`);
 r = await as('S', `select status from tramitar_memorando($1,'atender','Equipamentos enviados')`, [M]);
-ok(`SEDUC atendeu → ${r.rows[0].status}`);
+ok(`Gestão Estadual atendeu → ${r.rows[0].status}`);
 r = await as('E1', `select acao, de_status, para_status, ator_perfil from memorando_tramitacoes where memorando_id=$1 order by id`, [M]);
 ok('trilha: ' + r.rows.map(x => `${x.acao}(${x.ator_perfil})`).join(' → '));
 
@@ -120,7 +120,7 @@ c.app_perfil === 'escola' && c.app_escola_id.endsWith('e501') && c.app_dre_id.en
 c = await hook(U.D);
 c.app_perfil === 'dre' && c.app_escola_id === null && c.app_dre_id.endsWith('0d6') ? ok('DRE: claims corretas') : fail(JSON.stringify(c));
 c = await hook(U.S);
-c.app_perfil === 'seduc' && c.app_dre_id === null ? ok('SEDUC: claims corretas') : fail(JSON.stringify(c));
+c.app_perfil === 'estadual' && c.app_dre_id === null ? ok('Gestão Estadual: claims corretas') : fail(JSON.stringify(c));
 await db.exec('reset role; set search_path to "$user", public');
 await db.exec(`update users set ativo = false where id = '${U.E2}'`);
 await db.exec('set role supabase_auth_admin; set search_path = auth');

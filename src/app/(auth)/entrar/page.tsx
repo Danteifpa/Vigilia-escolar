@@ -11,7 +11,7 @@ export default async function Entrar({ searchParams }: { searchParams: Promise<{
   return (
     <>
       <h1 className="text-xl font-bold">Entrar</h1>
-      <p className="mb-5 text-sm text-slate-600">Use o e-mail cadastrado pela sua DRE ou pela SEDUC.</p>
+      <p className="mb-5 text-sm text-slate-600">Use o e-mail cadastrado pela sua DRE ou pela Gestão Estadual.</p>
       {erro && ERROS_DE_ENTRADA[erro] && <Alert tom="erro" className="mb-4">{ERROS_DE_ENTRADA[erro]}</Alert>}
       <FormularioEntrar proximo={caminhoSeguro(proximo)} />
     </>

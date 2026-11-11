@@ -1,14 +1,14 @@
 // Tipos de domínio espelhando os enums/tabelas do Postgres.
 // Em produção, complemente com `npm run db:types` (tipos gerados pelo Supabase CLI).
 
-export type PerfilUsuario = 'escola' | 'dre' | 'seduc';
+export type PerfilUsuario = 'escola' | 'dre' | 'estadual';
 export type CorBandeira = 'verde' | 'amarela' | 'vermelha';
 export type RegimePedagogico = 'presencial' | 'presencial_adaptado' | 'nao_presencial' | 'cemep';
 export type TipoAmeaca = 'fumaca_queimadas' | 'estiagem_agua' | 'outros';
 export type PrioridadeMemo = 'normal' | 'alta' | 'critica';
 export type StatusMemorando =
   | 'rascunho' | 'enviado' | 'em_analise_dre' | 'devolvido'
-  | 'encaminhado_seduc' | 'atendido' | 'arquivado';
+  | 'encaminhado_estadual' | 'atendido' | 'arquivado';
 export type SituacaoAgua = 'normal' | 'reduzida' | 'critica' | 'sem_agua';
 export type NivelFumaca = 'ausente' | 'leve' | 'moderada' | 'intensa';
 export type SituacaoAcesso = 'normal' | 'restrito' | 'interrompido';

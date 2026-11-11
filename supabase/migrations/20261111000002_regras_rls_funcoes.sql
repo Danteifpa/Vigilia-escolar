@@ -140,12 +140,12 @@ insert into memorando_transicoes (perfil, acao, de_status, para_status, exige_pa
   ('dre',    'receber',          'enviado',           'em_analise_dre',    false),
   ('dre',    'devolver',         'enviado',           'devolvido',         true),
   ('dre',    'devolver',         'em_analise_dre',    'devolvido',         true),
-  ('dre',    'encaminhar_seduc', 'em_analise_dre',    'encaminhado_seduc', true),
+  ('dre',    'encaminhar_estadual', 'em_analise_dre',    'encaminhado_estadual', true),
   ('dre',    'atender',          'em_analise_dre',    'atendido',          true),
   ('dre',    'arquivar',         'atendido',          'arquivado',         false),
-  ('seduc',  'devolver',         'encaminhado_seduc', 'em_analise_dre',    true),
-  ('seduc',  'atender',          'encaminhado_seduc', 'atendido',          true),
-  ('seduc',  'arquivar',         'atendido',          'arquivado',         false);
+  ('estadual',  'devolver',         'encaminhado_estadual', 'em_analise_dre',    true),
+  ('estadual',  'atender',          'encaminhado_estadual', 'atendido',          true),
+  ('estadual',  'arquivar',         'atendido',          'arquivado',         false);
 
 -- Despacho pela escola: valida o Anexo I, numera e registra a tramitação
 create or replace function public.enviar_memorando(p_memorando_id uuid)
@@ -206,7 +206,7 @@ begin
   return v_memo;
 end $$;
 
--- Tramitação pela DRE / SEDUC
+-- Tramitação pela DRE / Gestão Estadual
 create or replace function public.tramitar_memorando(
   p_memorando_id uuid, p_acao text, p_parecer text default null)
 returns memorandos_ocorrencia
@@ -297,30 +297,30 @@ create policy municipios_leitura  on municipios           for select to authenti
 create policy acoes_leitura       on protocolo_acoes      for select to authenticated using (true);
 create policy transicoes_leitura  on memorando_transicoes for select to authenticated using (true);
 
--- Escolas: escola vê a si; DRE vê o seu polo; SEDUC vê todas
+-- Escolas: escola vê a si; DRE vê o seu polo; Gestão Estadual vê todas
 create policy escolas_leitura on escolas for select to authenticated using (
-     app.perfil() = 'seduc'
+     app.perfil() = 'estadual'
   or (app.perfil() = 'dre'    and dre_id = app.dre_id())
   or (app.perfil() = 'escola' and id = app.escola_id())
 );
 
--- Usuários: a si mesmo; DRE vê usuários do polo; SEDUC vê todos
+-- Usuários: a si mesmo; DRE vê usuários do polo; Gestão Estadual vê todos
 create policy users_leitura on users for select to authenticated using (
      id = auth.uid()
-  or app.perfil() = 'seduc'
+  or app.perfil() = 'estadual'
   or (app.perfil() = 'dre' and (
         dre_id = app.dre_id()
      or escola_id in (select id from escolas where dre_id = app.dre_id())))
 );
 
--- Bandeiras: transparência total na leitura; decretação exclusiva da SEDUC
+-- Bandeiras: transparência total na leitura; decretação exclusiva da Gestão Estadual
 create policy hb_leitura on historico_bandeiras for select to authenticated using (true);
-create policy hb_decretar_seduc on historico_bandeiras for insert to authenticated
-  with check (app.perfil() = 'seduc' and decretada_por = auth.uid());
+create policy hb_decretar_estadual on historico_bandeiras for insert to authenticated
+  with check (app.perfil() = 'estadual' and decretada_por = auth.uid());
 
--- Checklists: escola escreve o seu; DRE lê o polo; SEDUC lê tudo
+-- Checklists: escola escreve o seu; DRE lê o polo; Gestão Estadual lê tudo
 create policy checklist_leitura on checklists_diarios for select to authenticated using (
-     app.perfil() = 'seduc'
+     app.perfil() = 'estadual'
   or (app.perfil() = 'dre'    and escola_id in (select id from escolas where dre_id = app.dre_id()))
   or (app.perfil() = 'escola' and escola_id = app.escola_id())
 );
@@ -334,7 +334,7 @@ create policy checklist_update_escola on checklists_diarios for update to authen
 create policy memo_leitura on memorandos_ocorrencia for select to authenticated using (
      (app.perfil() = 'escola' and escola_id = app.escola_id())
   or (app.perfil() = 'dre'    and dre_id = app.dre_id() and status <> 'rascunho')
-  or (app.perfil() = 'seduc'  and status <> 'rascunho')
+  or (app.perfil() = 'estadual'  and status <> 'rascunho')
 );
 create policy memo_insert_escola on memorandos_ocorrencia for insert to authenticated
   with check (app.perfil() = 'escola' and escola_id = app.escola_id() and status = 'rascunho');

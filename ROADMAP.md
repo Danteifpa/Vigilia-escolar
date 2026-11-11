@@ -7,7 +7,7 @@ Legenda: ✅ feito · 🟡 em andamento · ⬜ a fazer
 - ✅ Supabase CLI (`supabase/config.toml`): sem autocadastro, senha forte, templates de e-mail em português
 - ✅ Perfil no JWT (hook) + `middleware.ts` direcionando cada perfil
 - ✅ Login, recuperação e definição de senha, sair
-- ✅ Convite de usuários (SEDUC: todos os perfis; DRE: escolas do polo) e ativar/desativar
+- ✅ Convite de usuários (Gestão Estadual: todos os perfis; DRE: escolas do polo) e ativar/desativar
 - ✅ Componentes base (`src/components/ui`)
 - ✅ Testes ponta a ponta no CI com Supabase real
 - ⬜ Projeto Supabase de homologação + deploy (Vercel) + `supabase db push`
@@ -26,10 +26,10 @@ Legenda: ✅ feito · 🟡 em andamento · ⬜ a fazer
 - ⬜ Formulário em etapas com salvamento local · fotos no Storage · linha do tempo
 - ⬜ PDF (`@react-pdf/renderer`) em `/api/memorandos/[id]/pdf` com QR de verificação
 
-## Fase 4 — Painéis DRE e SEDUC
+## Fase 4 — Painéis DRE e Gestão Estadual
 - 🟡 Resumo inicial com contadores (provisório)
 - ⬜ DRE: fila de triagem, escolas por bandeira, escolas sem checklist, tramitação, Realtime
-- ⬜ SEDUC: visão estadual, decretação de bandeiras, regime pedagógico, exportação CSV
+- ⬜ Gestão Estadual: visão estadual, decretação de bandeiras, regime pedagógico, exportação CSV
 
 ## Fase 5 — Piloto e ajustes finais
 - ⬜ Piloto em uma DRE + polo ribeirinho · LGPD · Sentry e backups · manual e treinamento

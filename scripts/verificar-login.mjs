@@ -10,7 +10,7 @@ const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const senha = process.env.SENHA_DEV ?? 'SenhaDev2026';
 let falhas = 0;
 
-for (const email of ['escola@vigilia.dev', 'dre@vigilia.dev', 'seduc@vigilia.dev']) {
+for (const email of ['escola@vigilia.dev', 'dre@vigilia.dev', 'estadual@vigilia.dev']) {
   const sb = createClient(url, anon, { auth: { persistSession: false } });
   const { data, error } = await sb.auth.signInWithPassword({ email, password: senha });
   if (error) {

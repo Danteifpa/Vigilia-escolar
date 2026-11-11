@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Cria (ou atualiza) os usuários de desenvolvimento no Supabase LOCAL:
- *   escola@vigilia.dev · dre@vigilia.dev · seduc@vigilia.dev   (senha: SENHA_DEV ou SenhaDev2026)
+ *   escola@vigilia.dev · dre@vigilia.dev · estadual@vigilia.dev   (senha: SENHA_DEV ou SenhaDev2026)
  * Requer NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY (veja `npx supabase status`).
  * Nunca rode contra produção.
  */
@@ -26,7 +26,7 @@ const DRE_BELEM_06 = '00000000-0000-0000-0000-0000000000d6';
 const ESCOLA_EXEMPLO = '00000000-0000-0000-0000-00000000e501';
 
 const usuarios = [
-  { email: 'seduc@vigilia.dev', nome: 'Comitê de Crise (dev)', perfil: 'seduc', cargo: 'Comitê de Crise' },
+  { email: 'estadual@vigilia.dev', nome: 'Comitê de Crise (dev)', perfil: 'estadual', cargo: 'Comitê de Crise' },
   { email: 'dre@vigilia.dev', nome: 'Coordenação DRE Belém 06 (dev)', perfil: 'dre', dre_id: DRE_BELEM_06, cargo: 'Coordenador(a)' },
   { email: 'escola@vigilia.dev', nome: 'Direção EEEFM Exemplo (dev)', perfil: 'escola', escola_id: ESCOLA_EXEMPLO, cargo: 'Diretor(a)' },
 ];

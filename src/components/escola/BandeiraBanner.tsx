@@ -4,8 +4,8 @@ import type { BandeiraVigente } from '@/types/dominio';
 import { formatarDataHora } from './formatos';
 
 const ORIGEM: Record<BandeiraVigente['origem'], string> = {
-  municipio: 'Decreto SEDUC para o município',
-  escola: 'Decreto SEDUC específico para esta escola',
+  municipio: 'Decreto estadual para o município',
+  escola: 'Decreto estadual específico para esta escola',
   padrao: 'Situação padrão (sem decreto vigente)',
 };
 
@@ -71,7 +71,7 @@ export function BandeiraBanner({ bandeira, onReportar }: Props) {
       )}
       {naoPresencial && (
         <p className="mt-3 rounded-lg bg-black/15 px-3 py-2 text-sm font-semibold">
-          Atividades não presenciais validadas pela SEDUC. Siga as orientações da DRE para entrega de material.
+          Atividades não presenciais validadas pela Gestão Estadual. Siga as orientações da DRE para entrega de material.
         </p>
       )}
 

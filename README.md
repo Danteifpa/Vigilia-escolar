@@ -1,6 +1,6 @@
 # Vigília Escolar PA
 
-Sistema web/PWA para operacionalizar o **Protocolo de Gestão e Resposta aos Efeitos do El Niño nas Escolas Públicas Estaduais do Pará (SEDUC/PA 2026-2027)**: monitoramento de riscos climáticos (queimadas/fumaça, calor extremo, estiagem), sistema de bandeiras e tramitação formal de ocorrências (Memorando do Anexo I) entre Escola → DRE → SEDUC.
+Sistema web/PWA para operacionalizar o **Protocolo de Gestão e Resposta aos Efeitos do El Niño nas Escolas Públicas Estaduais do Pará (2026-2027)**: monitoramento de riscos climáticos (queimadas/fumaça, calor extremo, estiagem), sistema de bandeiras e tramitação formal de ocorrências (Memorando do Anexo I) entre Escola → DRE → Gestão Estadual.
 
 ---
 
@@ -15,7 +15,7 @@ flowchart LR
     UI <--> IDB
     UI --> SW
   end
-  subgraph Servidor["Next.js (Vercel ou VM SEDUC)"]
+  subgraph Servidor["Next.js (Vercel ou servidor próprio)"]
     RSC[Server Components<br/>painéis]
     API[Route Handlers /api/*<br/>validação Zod]
   end
@@ -35,7 +35,7 @@ flowchart LR
 |---|---|---|
 | Front | **Next.js 15 (App Router) + React 19 + Tailwind 4** | SSR para o painel abrir rápido em 3G; um único repositório para UI e API. |
 | Offline | **PWA (Serwist) + IndexedDB (Dexie)** | Escolas ribeirinhas/rurais perdem sinal. Leituras usam cache *NetworkFirst*; escritas entram numa **fila (outbox)** reenviada ao reconectar. |
-| Banco | **PostgreSQL no Supabase** | Três níveis hierárquicos com visibilidade diferente pedem **RLS**; Auth, Storage e backups inclusos. SQLite local foi descartado como banco principal porque não resolve a sincronização entre escola, DRE e SEDUC — o papel de “banco local” fica com o IndexedDB. |
+| Banco | **PostgreSQL no Supabase** | Três níveis hierárquicos com visibilidade diferente pedem **RLS**; Auth, Storage e backups inclusos. SQLite local foi descartado como banco principal porque não resolve a sincronização entre escola, DRE e Gestão Estadual — o papel de “banco local” fica com o IndexedDB. |
 | Validação | **Zod** (compartilhado cliente/servidor) | O mesmo schema valida o formulário offline e a API. |
 
 ### Princípios
@@ -58,7 +58,7 @@ erDiagram
   dres ||--o{ users : "perfil dre"
   municipios ||--o{ historico_bandeiras : "escopo municipio"
   escolas ||--o{ historico_bandeiras : "escopo escola"
-  users ||--o{ historico_bandeiras : "decretada_por (seduc)"
+  users ||--o{ historico_bandeiras : "decretada_por (estadual)"
   escolas ||--o{ checklists_diarios : "1 por dia"
   escolas ||--o{ memorandos_ocorrencia : emite
   memorandos_ocorrencia ||--o{ memorando_tramitacoes : trilha
@@ -68,18 +68,18 @@ erDiagram
 
 | Tabela | Papel |
 |---|---|
-| `users` | Perfil de aplicação ligado a `auth.users`. `CHECK` garante: perfil `escola` ⇒ `escola_id`; `dre` ⇒ `dre_id`; `seduc` ⇒ nenhum vínculo. |
+| `users` | Perfil de aplicação ligado a `auth.users`. `CHECK` garante: perfil `escola` ⇒ `escola_id`; `dre` ⇒ `dre_id`; `estadual` ⇒ nenhum vínculo. |
 | `escolas`, `dres`, `municipios` | Estrutura territorial. Escola tem flag `risco_isolamento` (acesso fluvial/vicinal). |
-| `historico_bandeiras` | Decretos da SEDUC por **município** ou **escola**. Índice único parcial impede duas bandeiras abertas no mesmo alvo. `CHECK` impede regime não presencial/CEMEP fora da vermelha. |
+| `historico_bandeiras` | Decretos da Gestão Estadual por **município** ou **escola**. Índice único parcial impede duas bandeiras abertas no mesmo alvo. `CHECK` impede regime não presencial/CEMEP fora da vermelha. |
 | `vw_bandeira_vigente` | Bandeira efetiva por escola: decreto da escola **prevalece** sobre o do município; sem decreto ⇒ verde. |
-| `protocolo_acoes` | Catálogo de ações por cor (**cumulativas**). A SEDUC ajusta o protocolo sem deploy. |
+| `protocolo_acoes` | Catálogo de ações por cor (**cumulativas**). A Gestão Estadual ajusta o protocolo sem deploy. |
 | `checklists_diarios` | Água, reservatório %, temperatura, fumaça, acesso, sintomas e ações marcadas. Único por escola/dia (upsert). Guarda *snapshot* da bandeira. |
 | `memorandos_ocorrencia` | **Anexo I**: tipos de ameaça (`fumaca_queimadas`, `estiagem_agua`, `outros` + descrição), descrição, impactos pedagógicos, impactos operacionais, providências tomadas, apoio necessário da DRE, alunos afetados, aulas suspensas, prioridade. `CHECK` exige o formulário completo fora do rascunho. |
 | `memorando_tramitacoes` | Trilha de cada mudança de status com parecer, ator e perfil. |
 | `memorando_transicoes` | Máquina de estados em tabela (fonte única). |
 
 ### Visibilidade (RLS)
-| | Escola | DRE | SEDUC |
+| | Escola | DRE | Gestão Estadual |
 |---|---|---|---|
 | Bandeiras | lê todas | lê todas | **decreta** e lê |
 | Checklists | escreve/lê os seus | lê o polo | lê todos |
@@ -99,11 +99,11 @@ stateDiagram-v2
   enviado --> em_analise_dre: DRE · receber
   enviado --> devolvido: DRE · devolver*
   em_analise_dre --> devolvido: DRE · devolver*
-  em_analise_dre --> encaminhado_seduc: DRE · encaminhar_seduc*
+  em_analise_dre --> encaminhado_estadual: DRE · encaminhar_estadual*
   em_analise_dre --> atendido: DRE · atender*
-  encaminhado_seduc --> em_analise_dre: SEDUC · devolver*
-  encaminhado_seduc --> atendido: SEDUC · atender*
-  atendido --> arquivado: DRE/SEDUC · arquivar
+  encaminhado_estadual --> em_analise_dre: Gestão Estadual · devolver*
+  encaminhado_estadual --> atendido: Gestão Estadual · atender*
+  atendido --> arquivado: DRE/Gestão Estadual · arquivar
 ```
 \* exige parecer.
 
@@ -117,7 +117,7 @@ stateDiagram-v2
 | `PATCH` | `/api/memorandos/:id` | escola | Edita rascunho/devolvido. `base_updated_at` ⇒ 409 se alterado em outro aparelho. |
 | `DELETE` | `/api/memorandos/:id` | escola | Descarta rascunho. |
 | `POST` | `/api/memorandos/:id/enviar` | escola | Despacho: valida Anexo I, numera, registra tramitação. 422 lista `campos` faltantes. |
-| `POST` | `/api/memorandos/:id/tramitar` | DRE/SEDUC | `{ acao, parecer? }`. 409 se a transição não é válida. |
+| `POST` | `/api/memorandos/:id/tramitar` | DRE/Gestão Estadual | `{ acao, parecer? }`. 409 se a transição não é válida. |
 | `GET` | `/api/escola/painel` | escola | Snapshot do dashboard (cacheado p/ offline). |
 | `PUT`/`PATCH` | `/api/escola/checklist` | escola | Upsert do checklist do dia / marcar ações. |
 
@@ -144,7 +144,7 @@ vigilia-escolar-pa/
 │   │   │   ├── memorandos/route.ts                # GET lista · POST rascunho
 │   │   │   ├── memorandos/[id]/route.ts           # GET · PATCH · DELETE
 │   │   │   ├── memorandos/[id]/enviar/route.ts    # despacho escola → DRE
-│   │   │   ├── memorandos/[id]/tramitar/route.ts  # DRE / SEDUC
+│   │   │   ├── memorandos/[id]/tramitar/route.ts  # DRE / Gestão Estadual
 │   │   │   └── escola/{painel,checklist}/route.ts
 │   │   ├── sw.ts · manifest.ts · offline/          # PWA
 │   │   └── layout.tsx · globals.css
@@ -160,7 +160,7 @@ vigilia-escolar-pa/
 └── next.config.ts · package.json · tsconfig.json
 ```
 
-Próximos módulos seguem o mesmo padrão: `src/modules/dre` (fila de triagem por prioridade), `src/modules/seduc` (decretação em lote por município, painel estadual), `app/(dre)/dre`, `app/(seduc)/seduc`.
+Próximos módulos seguem o mesmo padrão: `src/modules/dre` (fila de triagem por prioridade), `src/modules/estadual` (decretação em lote por município, painel estadual), `app/(dre)/dre`, `app/(estadual)/estadual`.
 
 ---
 
@@ -173,7 +173,7 @@ npm install
 npx supabase start            # Postgres, Auth, Realtime, Storage e Mailpit locais
 npx supabase status           # copie URL, anon key e service_role key
 cp .env.example .env.local    # e cole os valores
-npm run dev:usuarios          # cria escola@ / dre@ / seduc@vigilia.dev (senha SenhaDev2026)
+npm run dev:usuarios          # cria escola@ / dre@ / estadual@vigilia.dev (senha SenhaDev2026)
 npm run dev                   # http://localhost:3000
 ```
 
@@ -187,7 +187,7 @@ E-mails de convite e recuperação de senha caem no Mailpit: http://127.0.0.1:54
 | `npx supabase db reset` | Recria o banco local (migrations + seed) |
 
 ### Autenticação (Fase 1)
-- **Sem autocadastro.** SEDUC convida qualquer perfil; DRE convida a equipe das escolas do seu polo (`/seduc/usuarios`, `/dre/usuarios`). O convidado recebe e-mail, define a senha em `/definir-senha` e cai na sua área.
+- **Sem autocadastro.** Gestão Estadual convida qualquer perfil; DRE convida a equipe das escolas do seu polo (`/estadual/usuarios`, `/dre/usuarios`). O convidado recebe e-mail, define a senha em `/definir-senha` e cai na sua área.
 - **Perfil no token.** O hook `custom_access_token_hook` (migration 003) põe `app_perfil`, `app_escola_id` e `app_dre_id` no JWT; o `middleware.ts` usa isso para direcionar cada perfil sem consultar o banco. A autorização dos dados continua na RLS.
 - **Desativar acesso** bloqueia o login no Auth e corta a RLS na hora.
 - Em produção, ative o hook em *Authentication → Hooks → Customize Access Token* e cadastre os templates de `supabase/templates/` em *Authentication → Email Templates*.
@@ -197,7 +197,7 @@ E-mails de convite e recuperação de senha caem no Mailpit: http://127.0.0.1:54
 - `npm run test:e2e` (CI, com Supabase real): login dos três perfis, bloqueio entre áreas, convite pela DRE, e-mail, definição de senha.
 - `tsc --noEmit` e `next build` sem erros.
 
-## 7. Premissas a validar com a SEDUC
+## 7. Premissas a validar com a secretaria parceira
 - Os campos do Anexo I foram modelados a partir da descrição do protocolo (tipo de ameaça, impactos pedagógicos/operacionais, providências, apoio da DRE). Conferir contra o modelo oficial do memorando e incluir campos que faltarem (ex.: assinatura/cargo do responsável).
 - Redação das ações em `seed.sql` deve ser substituída pelo texto oficial do protocolo.
 - Regra de precedência “decreto da escola prevalece sobre o do município” (inclusive para rebaixar).

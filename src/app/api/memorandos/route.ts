@@ -6,7 +6,7 @@ import type { StatusMemorando } from '@/types/dominio';
 
 /**
  * GET /api/memorandos?status=enviado,em_analise_dre&escola=<uuid>&cursor=<iso>
- * A RLS já recorta: escola vê os seus; DRE vê o polo (sem rascunhos); SEDUC vê todos.
+ * A RLS já recorta: escola vê os seus; DRE vê o polo (sem rascunhos); Gestão Estadual vê todos.
  */
 export async function GET(req: Request) {
   const db = await supabaseServidor();
