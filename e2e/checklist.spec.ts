@@ -19,12 +19,12 @@ test('escola preenche o checklist e o painel mostra as condições do dia', asyn
   await expect(page).toHaveURL('/escola/checklist');
 
   await escolher(page, 'Situação do abastecimento', 'Reduzida');
-  await page.getByLabel('Nível do reservatório (%)').fill('40');
-  await page.getByLabel('Temperatura máxima nas salas (°C)').fill('36.5');
+  await page.getByLabel('Nível do reservatório (%)', { exact: true }).fill('40');
+  await page.getByLabel('Temperatura máxima nas salas (°C)', { exact: true }).fill('36.5');
   await escolher(page, 'Nível de fumaça', 'Moderada');
   await escolher(page, 'Situação de acesso', 'Normal');
-  await page.getByLabel('Alunos presentes').fill('600');
-  await page.getByLabel('Alunos com sintomas').fill('2');
+  await page.getByLabel('Alunos presentes', { exact: true }).fill('600');
+  await page.getByLabel('Alunos com sintomas', { exact: true }).fill('2');
   await page.getByText('Verificar reservatório e abastecimento de água').click();
   await page.getByRole('button', { name: 'Salvar checklist' }).click();
 
@@ -40,10 +40,10 @@ test('validação impede dados incoerentes', async ({ page }) => {
   await entrar(page, 'escola@vigilia.dev');
   await page.goto('/escola/checklist');
   await expect(alerta(page, 'Checklist de hoje já registrado')).toBeVisible();   // reabre preenchido
-  await expect(page.getByLabel('Alunos presentes')).toHaveValue('600');
+  await expect(page.getByLabel('Alunos presentes', { exact: true })).toHaveValue('600');
 
-  await page.getByLabel('Alunos com sintomas').fill('900');
-  await page.getByLabel('Nível do reservatório (%)').fill('140');
+  await page.getByLabel('Alunos com sintomas', { exact: true }).fill('900');
+  await page.getByLabel('Nível do reservatório (%)', { exact: true }).fill('140');
   await page.getByRole('button', { name: 'Salvar checklist' }).click();
   await expect(page.getByText('Não pode ser maior que o número de presentes')).toBeVisible();
   await expect(page.getByText('Máximo 100%')).toBeVisible();
@@ -53,11 +53,11 @@ test('validação impede dados incoerentes', async ({ page }) => {
 test('sem internet, o checklist fica no aparelho e é enviado ao reconectar', async ({ page, context }) => {
   await entrar(page, 'escola@vigilia.dev');
   await page.goto('/escola/checklist');
-  await expect(page.getByLabel('Alunos presentes')).toHaveValue('600');
+  await expect(page.getByLabel('Alunos presentes', { exact: true })).toHaveValue('600');
 
   await context.setOffline(true);
   await escolher(page, 'Situação do abastecimento', 'Crítica');
-  await page.getByLabel('Nível do reservatório (%)').fill('15');
+  await page.getByLabel('Nível do reservatório (%)', { exact: true }).fill('15');
   await page.getByRole('button', { name: 'Salvar checklist' }).click();
   await expect(alerta(page, 'Sem internet: checklist salvo neste aparelho')).toBeVisible();
 
