@@ -86,7 +86,7 @@ test('DRE convida diretor; convidado define senha e cai no painel da escola', as
   await page.getByLabel('Nome completo').fill('Diretora Convidada E2E');
   await page.getByLabel('E-mail institucional').fill(email);
   await page.getByLabel('Cargo').fill('Diretor(a)');
-  await page.getByLabel('Escola', { exact: true }).selectOption({ label: 'EEEFM Exemplo Vigília (fictícia) · INEP 15000001' });
+  await page.getByLabel(/^Escola/).selectOption({ label: 'EEEFM Exemplo Vigília (fictícia) · INEP 15000001' });
   await page.getByRole('button', { name: 'Enviar convite por e-mail' }).click();
   await expect(page.getByRole('status').filter({ hasText: `Convite enviado para ${email}` })).toBeVisible();
   await expect(page.getByRole('cell', { name: /Diretora Convidada E2E/ })).toBeVisible();
@@ -94,7 +94,7 @@ test('DRE convida diretor; convidado define senha e cai no painel da escola', as
   // Convite duplicado é recusado
   await page.getByLabel('Nome completo').fill('Diretora Convidada E2E');
   await page.getByLabel('E-mail institucional').fill(email);
-  await page.getByLabel('Escola', { exact: true }).selectOption({ label: 'EEEFM Exemplo Vigília (fictícia) · INEP 15000001' });
+  await page.getByLabel(/^Escola/).selectOption({ label: 'EEEFM Exemplo Vigília (fictícia) · INEP 15000001' });
   await page.getByRole('button', { name: 'Enviar convite por e-mail' }).click();
   await expect(alerta(page, 'Já existe uma conta com este e-mail.')).toBeVisible();
   await sair(page);
