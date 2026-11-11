@@ -14,13 +14,16 @@
 
 alter table users add column convidado_por uuid references users(id);
 
+-- search_path vazio: o Auth chama o hook com search_path = auth, então tudo
+-- aqui precisa ser qualificado (public.*) — inclusive os tipos.
 create or replace function public.custom_access_token_hook(event jsonb)
 returns jsonb
 language plpgsql stable
+set search_path = ''
 as $$
 declare
   v_claims jsonb := coalesce(event -> 'claims', '{}'::jsonb);
-  v_perfil perfil_usuario;
+  v_perfil public.perfil_usuario;
   v_escola uuid;
   v_dre    uuid;
 begin

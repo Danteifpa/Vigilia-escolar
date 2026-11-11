@@ -112,7 +112,8 @@ console.log('\nPerfil no JWT (custom access token hook)');
 const hook = async (uid) => (await db.query(
   `select public.custom_access_token_hook($1::jsonb) as ev`,   // executado como supabase_auth_admin
   [JSON.stringify({ user_id: uid, claims: { sub: uid, role: 'authenticated' } })])).rows[0].ev.claims;
-await db.exec('set role supabase_auth_admin');
+// Mesmo ambiente do serviço de Auth: role supabase_auth_admin com search_path = auth
+await db.exec('set role supabase_auth_admin; set search_path = auth');
 let c = await hook(U.E1);
 c.app_perfil === 'escola' && c.app_escola_id.endsWith('e501') && c.app_dre_id.endsWith('0d6') && c.sub === U.E1
   ? ok('escola: perfil, escola e DRE do polo nas claims') : fail(JSON.stringify(c));
@@ -120,12 +121,12 @@ c = await hook(U.D);
 c.app_perfil === 'dre' && c.app_escola_id === null && c.app_dre_id.endsWith('0d6') ? ok('DRE: claims corretas') : fail(JSON.stringify(c));
 c = await hook(U.S);
 c.app_perfil === 'seduc' && c.app_dre_id === null ? ok('SEDUC: claims corretas') : fail(JSON.stringify(c));
-await db.exec('reset role');
+await db.exec('reset role; set search_path to "$user", public');
 await db.exec(`update users set ativo = false where id = '${U.E2}'`);
-await db.exec('set role supabase_auth_admin');
+await db.exec('set role supabase_auth_admin; set search_path = auth');
 c = await hook(U.E2);
 !('app_perfil' in c) && c.sub === U.E2 ? ok('usuário desativado fica sem perfil') : fail(JSON.stringify(c));
-await db.exec('reset role');
+await db.exec('reset role; set search_path to "$user", public');
 await expectErr('usuário comum executa o hook', () => as('E1', `select public.custom_access_token_hook('{}'::jsonb)`), '42501');
 r = await as('E2', `select count(*)::int n from memorandos_ocorrencia`);
 r.rows[0].n === 0 ? ok('desativado perde acesso imediato via RLS') : fail(JSON.stringify(r.rows));
