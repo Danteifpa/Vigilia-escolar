@@ -44,6 +44,7 @@ export async function convidarUsuario(_anterior: EstadoConvite, formData: FormDa
     return { ok: false, mensagem: 'Revise os campos destacados.', erros };
   }
   const d = parse.data;
+  console.info(`[convite] ${ator.perfil} ${ator.id} → ${d.perfil} ${d.email}`);
 
   if (ator.perfil === 'dre' && d.perfil !== 'escola') {
     return { ok: false, mensagem: 'A DRE pode convidar apenas usuários de escola.' };
@@ -55,13 +56,19 @@ export async function convidarUsuario(_anterior: EstadoConvite, formData: FormDa
   }
 
   const admin = supabaseAdmin();
+  const jaCadastrado = { ok: false, mensagem: 'Já existe uma conta com este e-mail.', erros: { email: 'E-mail já cadastrado' } } as const;
+
+  // Conta com perfil já existe? (o convite do Supabase reaproveitaria um convite pendente)
+  const { data: existente } = await admin.from('users').select('id').eq('email', d.email).maybeSingle();
+  if (existente) return jaCadastrado;
+
   const { data: convite, error: erroConvite } = await admin.auth.admin.inviteUserByEmail(d.email, {
     redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?proximo=/definir-senha`,
     data: { nome: d.nome },
   });
   if (erroConvite || !convite.user) {
     const jaExiste = erroConvite?.code === 'email_exists' || /already/i.test(erroConvite?.message ?? '');
-    return { ok: false, mensagem: jaExiste ? 'Já existe uma conta com este e-mail.' : 'Não foi possível enviar o convite.', erros: jaExiste ? { email: 'E-mail já cadastrado' } : undefined };
+    return jaExiste ? jaCadastrado : { ok: false, mensagem: 'Não foi possível enviar o convite.' };
   }
 
   const { error: erroPerfil } = await admin.from('users').insert({
@@ -74,8 +81,13 @@ export async function convidarUsuario(_anterior: EstadoConvite, formData: FormDa
     cargo: d.cargo ?? null,
     convidado_por: ator.id,
   });
+  if (erroPerfil?.code === '23505') {
+    // Envio repetido (duplo clique, reenvio da rede): o perfil já foi gravado. Nunca apagar a conta aqui.
+    return jaCadastrado;
+  }
   if (erroPerfil) {
-    await admin.auth.admin.deleteUser(convite.user.id);   // não deixa conta órfã no Auth
+    // Conta recém-criada sem perfil: remove para não deixar órfã no Auth
+    if (!convite.user.last_sign_in_at) await admin.auth.admin.deleteUser(convite.user.id);
     console.error('[convite] falha ao gravar perfil', erroPerfil);
     return { ok: false, mensagem: 'Não foi possível concluir o cadastro. Nada foi criado.' };
   }
