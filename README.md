@@ -166,15 +166,35 @@ Próximos módulos seguem o mesmo padrão: `src/modules/dre` (fila de triagem po
 
 ## 5. Como rodar
 
+Requisitos: Node 22+ e Docker (para o Supabase local).
+
 ```bash
 npm install
-supabase start && supabase db reset     # aplica migrations + seed
-cp .env.example .env.local              # preencha URL/anon key do `supabase status`
-npm run dev                             # http://localhost:3000/preview/escola?cor=vermelha
+npx supabase start            # Postgres, Auth, Realtime, Storage e Mailpit locais
+npx supabase status           # copie URL, anon key e service_role key
+cp .env.example .env.local    # e cole os valores
+npm run dev:usuarios          # cria escola@ / dre@ / seduc@vigilia.dev (senha SenhaDev2026)
+npm run dev                   # http://localhost:3000
 ```
 
+E-mails de convite e recuperação de senha caem no Mailpit: http://127.0.0.1:54324
+
+| Comando | O que faz |
+|---|---|
+| `npm run db:test` | Migrations + regras do banco num Postgres embutido (sem Docker) |
+| `npm test` | Testes unitários (regras de navegação por perfil) |
+| `npm run test:e2e` | Navegador real contra o Supabase local: login, convite, definição de senha |
+| `npx supabase db reset` | Recria o banco local (migrations + seed) |
+
+### Autenticação (Fase 1)
+- **Sem autocadastro.** SEDUC convida qualquer perfil; DRE convida a equipe das escolas do seu polo (`/seduc/usuarios`, `/dre/usuarios`). O convidado recebe e-mail, define a senha em `/definir-senha` e cai na sua área.
+- **Perfil no token.** O hook `custom_access_token_hook` (migration 003) põe `app_perfil`, `app_escola_id` e `app_dre_id` no JWT; o `middleware.ts` usa isso para direcionar cada perfil sem consultar o banco. A autorização dos dados continua na RLS.
+- **Desativar acesso** bloqueia o login no Auth e corta a RLS na hora.
+- Em produção, ative o hook em *Authentication → Hooks → Customize Access Token* e cadastre os templates de `supabase/templates/` em *Authentication → Email Templates*.
+
 ## 6. Verificações feitas
-- Migrations + seed aplicadas em PostgreSQL 16 (PGlite) com stub do schema `auth`, e um roteiro de 24 verificações (`npm run db:test`) cobrindo RLS por perfil, numeração, validação do Anexo I, máquina de estados, precedência de bandeiras, snapshot e upsert do checklist — todos passando.
+- `npm run db:test`: 30 verificações em PostgreSQL embutido — RLS por perfil, numeração, Anexo I, máquina de estados, bandeiras, checklist e hook de perfil no JWT.
+- `npm run test:e2e` (CI, com Supabase real): login dos três perfis, bloqueio entre áreas, convite pela DRE, e-mail, definição de senha.
 - `tsc --noEmit` e `next build` sem erros.
 
 ## 7. Premissas a validar com a SEDUC

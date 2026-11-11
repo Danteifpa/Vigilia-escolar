@@ -10,3 +10,5 @@ public/sw.js.map
 public/swe-worker-*.js
 .DS_Store
 supabase/.temp/
+playwright-report/
+test-results/
