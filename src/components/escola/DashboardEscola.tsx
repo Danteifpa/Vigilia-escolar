@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { CloudOff, RefreshCw, School, Siren, Wifi } from 'lucide-react';
 import { contarPendentes, enfileirar, iniciarSincronizacao } from '@/lib/offline/fila';
 import type { PainelEscola } from '@/types/dominio';
@@ -28,7 +28,7 @@ function useConexao() {
   return { online, pendentes };
 }
 
-export function DashboardEscola({ painel }: { painel: PainelEscola }) {
+export function DashboardEscola({ painel, acoesCabecalho }: { painel: PainelEscola; acoesCabecalho?: ReactNode }) {
   const { escola, bandeira, acoes, checklistHoje, memorandosRecentes } = painel;
   const [reporteAberto, setReporteAberto] = useState(false);
   const [feitas, setFeitas] = useState<Record<string, boolean>>(checklistHoje?.acoes ?? {});
@@ -66,6 +66,7 @@ export function DashboardEscola({ painel }: { painel: PainelEscola }) {
               </span>
             )}
           </div>
+          {acoesCabecalho}
         </div>
       </header>
 

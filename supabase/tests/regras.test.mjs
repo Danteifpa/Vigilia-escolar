@@ -1,5 +1,5 @@
 import { PGlite } from '@electric-sql/pglite';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 
 const root = process.argv[2] ?? new URL("../..", import.meta.url).pathname;
 const db = new PGlite();
@@ -8,7 +8,7 @@ const fail = (m) => { console.log('  ✘', m); process.exitCode = 1; };
 
 // Stub mínimo do Supabase (schema auth + roles)
 await db.exec(`
-  create role authenticated nologin; create role anon nologin;
+  create role authenticated nologin; create role anon nologin; create role supabase_auth_admin nologin;
   create schema auth;
   create table auth.users (id uuid primary key);
   create function auth.uid() returns uuid language sql stable as
@@ -16,7 +16,8 @@ await db.exec(`
   grant usage on schema auth to authenticated, anon;
   grant usage on schema public to authenticated, anon;
 `);
-for (const f of ['migrations/20261111000001_schema_inicial.sql', 'migrations/20261111000002_regras_rls_funcoes.sql', 'seed.sql']) {
+const migrations = readdirSync(`${root}/supabase/migrations`).filter((f) => f.endsWith('.sql')).sort().map((f) => `migrations/${f}`);
+for (const f of [...migrations, 'seed.sql']) {
   await db.exec(readFileSync(`${root}/supabase/${f}`, 'utf8'));
   ok(`aplicado ${f}`);
 }
@@ -100,11 +101,34 @@ r = await as('D', `select count(*)::int n from memorandos_ocorrencia`);
 r.rows[0].n === 1 ? ok('DRE não vê rascunhos') : fail(JSON.stringify(r.rows));
 r = await as('E1', `select a.codigo from protocolo_acoes a, vw_bandeira_vigente b where a.ativo and a.cor <= b.cor order by a.cor desc, a.ordem`);
 ok(`ações cumulativas na vermelha: ${r.rows.length}`);
-console.log(process.exitCode ? '\nFALHOU' : '\nTODOS OS TESTES PASSARAM');
 await as('E1', `insert into checklists_diarios (id, data, bandeira_cor, situacao_agua, nivel_fumaca, situacao_acesso, preenchido_por)
   values ('c0000000-0000-0000-0000-000000000009', current_date, 'verde', 'critica', 'intensa', 'restrito', '${U.E1}')
   on conflict (escola_id, data) do update set id = excluded.id, situacao_agua = excluded.situacao_agua`);
 r = await as('E1', `select id, situacao_agua, count(*) over ()::int n from checklists_diarios`);
 r.rows[0].n === 1 && r.rows[0].situacao_agua === 'critica' && r.rows[0].id !== 'c0000000-0000-0000-0000-000000000009'
   ? ok('upsert do checklist (outro aparelho) atualiza sem duplicar nem trocar PK') : fail(JSON.stringify(r.rows));
-console.log(process.exitCode ? 'FALHOU' : 'OK FINAL');
+
+console.log('\nPerfil no JWT (custom access token hook)');
+const hook = async (uid) => (await db.query(
+  `select public.custom_access_token_hook($1::jsonb) as ev`,   // executado como supabase_auth_admin
+  [JSON.stringify({ user_id: uid, claims: { sub: uid, role: 'authenticated' } })])).rows[0].ev.claims;
+// Mesmo ambiente do serviço de Auth: role supabase_auth_admin com search_path = auth
+await db.exec('set role supabase_auth_admin; set search_path = auth');
+let c = await hook(U.E1);
+c.app_perfil === 'escola' && c.app_escola_id.endsWith('e501') && c.app_dre_id.endsWith('0d6') && c.sub === U.E1
+  ? ok('escola: perfil, escola e DRE do polo nas claims') : fail(JSON.stringify(c));
+c = await hook(U.D);
+c.app_perfil === 'dre' && c.app_escola_id === null && c.app_dre_id.endsWith('0d6') ? ok('DRE: claims corretas') : fail(JSON.stringify(c));
+c = await hook(U.S);
+c.app_perfil === 'seduc' && c.app_dre_id === null ? ok('SEDUC: claims corretas') : fail(JSON.stringify(c));
+await db.exec('reset role; set search_path to "$user", public');
+await db.exec(`update users set ativo = false where id = '${U.E2}'`);
+await db.exec('set role supabase_auth_admin; set search_path = auth');
+c = await hook(U.E2);
+!('app_perfil' in c) && c.sub === U.E2 ? ok('usuário desativado fica sem perfil') : fail(JSON.stringify(c));
+await db.exec('reset role; set search_path to "$user", public');
+await expectErr('usuário comum executa o hook', () => as('E1', `select public.custom_access_token_hook('{}'::jsonb)`), '42501');
+r = await as('E2', `select count(*)::int n from memorandos_ocorrencia`);
+r.rows[0].n === 0 ? ok('desativado perde acesso imediato via RLS') : fail(JSON.stringify(r.rows));
+
+console.log(process.exitCode ? '\nFALHOU' : '\nTODOS OS TESTES PASSARAM');

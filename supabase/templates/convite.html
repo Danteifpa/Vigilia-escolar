@@ -1,0 +1,5 @@
+<h2>Vigília Escolar PA</h2>
+<p>Olá{{ if .Data.nome }}, {{ .Data.nome }}{{ end }}!</p>
+<p>Você recebeu acesso ao <strong>Vigília Escolar PA</strong>, o sistema do Protocolo de Gestão e Resposta aos Efeitos do El Niño nas escolas estaduais do Pará (SEDUC/PA).</p>
+<p><a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=invite&proximo=/definir-senha">Criar minha senha e entrar</a></p>
+<p>O link vale por 24 horas. Se você não esperava este convite, ignore este e-mail.</p>
