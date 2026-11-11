@@ -44,7 +44,6 @@ export async function convidarUsuario(_anterior: EstadoConvite, formData: FormDa
     return { ok: false, mensagem: 'Revise os campos destacados.', erros };
   }
   const d = parse.data;
-  console.info(`[convite] ${ator.perfil} ${ator.id} → ${d.perfil} ${d.email}`);
 
   if (ator.perfil === 'dre' && d.perfil !== 'escola') {
     return { ok: false, mensagem: 'A DRE pode convidar apenas usuários de escola.' };
