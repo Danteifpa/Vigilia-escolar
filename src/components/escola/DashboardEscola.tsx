@@ -2,7 +2,8 @@
 
 import { type ReactNode, useEffect, useState } from 'react';
 import { CloudOff, RefreshCw, School, Siren, Wifi } from 'lucide-react';
-import { contarPendentes, enfileirar, iniciarSincronizacao } from '@/lib/offline/fila';
+import { useRouter } from 'next/navigation';
+import { contarPendentes, enfileirar, EVENTO_SINCRONIZADO } from '@/lib/offline/fila';
 import type { PainelEscola } from '@/types/dominio';
 import { AcoesObrigatorias } from './AcoesObrigatorias';
 import { BandeiraBanner } from './BandeiraBanner';
@@ -20,10 +21,9 @@ function useConexao() {
     const off = () => setOnline(false);
     window.addEventListener('online', on);
     window.addEventListener('offline', off);
-    const parar = iniciarSincronizacao();
     const t = window.setInterval(() => void contarPendentes().then(setPendentes), 3_000);
     void contarPendentes().then(setPendentes);
-    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); parar(); window.clearInterval(t); };
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); window.clearInterval(t); };
   }, []);
   return { online, pendentes };
 }
@@ -32,7 +32,17 @@ export function DashboardEscola({ painel, acoesCabecalho }: { painel: PainelEsco
   const { escola, bandeira, acoes, checklistHoje, memorandosRecentes } = painel;
   const [reporteAberto, setReporteAberto] = useState(false);
   const [feitas, setFeitas] = useState<Record<string, boolean>>(checklistHoje?.acoes ?? {});
+  // Dados novos do servidor (ex.: após sincronizar) substituem o estado local
+  useEffect(() => setFeitas(checklistHoje?.acoes ?? {}), [checklistHoje?.updated_at]); // eslint-disable-line react-hooks/exhaustive-deps
   const { online, pendentes } = useConexao();
+  const router = useRouter();
+
+  // Quando a fila offline envia dados, recarrega o painel com a versão do servidor
+  useEffect(() => {
+    const recarregar = () => router.refresh();
+    window.addEventListener(EVENTO_SINCRONIZADO, recarregar);
+    return () => window.removeEventListener(EVENTO_SINCRONIZADO, recarregar);
+  }, [router]);
 
   const alternarAcao = (codigo: string, feito: boolean) => {
     setFeitas((f) => ({ ...f, [codigo]: feito }));        // otimista; sincroniza pela fila

@@ -1,19 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
+import { alerta, entrar, sair } from './ajuda';
 
-const SENHA = process.env.SENHA_DEV ?? 'SenhaDev2026';
 const MAILPIT = process.env.MAILPIT_URL ?? 'http://127.0.0.1:54324';
-
-async function entrar(page: Page, email: string, senha = SENHA) {
-  await page.goto('/entrar');
-  await page.getByLabel('E-mail').fill(email);
-  await page.getByLabel('Senha').fill(senha);
-  await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-}
-
-async function sair(page: Page) {
-  await page.getByRole('button', { name: 'Sair' }).click();
-  await expect(page).toHaveURL(/\/entrar$/);
-}
 
 /** Busca no Mailpit o link do e-mail mais recente enviado para `email`. */
 async function linkDoEmail(page: Page, email: string): Promise<string> {
@@ -35,9 +23,6 @@ test.afterEach(async ({ page }, info) => {
   const alertas = await page.locator('[role=alert], [role=status]').allInnerTexts().catch(() => []);
   console.log(`[diagnóstico] ${info.title}\n  url: ${page.url()}\n  alertas: ${JSON.stringify(alertas.filter(Boolean))}`);
 });
-
-/** Alerta do app (o Next.js também injeta um role="alert" para anunciar rotas). */
-const alerta = (page: Page, texto: string) => page.locator('[role=alert]').filter({ hasText: texto });
 
 test('sem sessão, área restrita leva ao login guardando o destino', async ({ page }) => {
   await page.goto('/escola/checklist?d=1');
