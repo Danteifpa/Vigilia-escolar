@@ -13,9 +13,10 @@ Legenda: ✅ feito · 🟡 em andamento · ⬜ a fazer
 - ⬜ Projeto Supabase de homologação + deploy (Vercel) + `supabase db push`
 - ⬜ Tipos gerados (`npm run db:types`)
 
-## Fase 2 — Painel e Checklist da Escola
+## Fase 2 — Painel e Checklist da Escola 🟡
 - ✅ Painel, banner da bandeira, ações obrigatórias, indicadores, fila offline, PWA base
-- ⬜ Formulário do checklist (react-hook-form + zod, offline)
+- ✅ Formulário do checklist (react-hook-form + zod), funcionando sem internet
+- ✅ PWA não recarrega a página ao reconectar (preserva formulários)
 - ⬜ Realtime: mudança de bandeira sem recarregar
 - ⬜ Ícones do PWA e teste de instalação em Android
 - ⬜ Tela de pendências da fila offline · histórico de 7 dias
