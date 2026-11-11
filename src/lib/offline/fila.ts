@@ -42,9 +42,48 @@ class BancoLocal extends Dexie {
 export const bancoLocal = new BancoLocal();
 
 export async function enfileirar(item: Pick<ItemFila, 'chave' | 'metodo' | 'url' | 'corpo'>) {
+  if (item.metodo === 'PUT') {
+    // PUT substitui o recurso inteiro: só a versão mais recente precisa ir
+    await bancoLocal.fila.where('chave').equals(item.chave)
+      .filter((x) => x.estado === 'pendente' && x.url === item.url && x.metodo === 'PUT').delete();
+  }
   await bancoLocal.fila.add({ ...item, criadoEm: Date.now(), tentativas: 0, proximaTentativa: 0, estado: 'pendente' });
   void processarFila();
 }
+
+export type ResultadoEnvio =
+  | { estado: 'enviado'; dados: unknown }
+  | { estado: 'na_fila' }
+  | { estado: 'erro'; mensagem: string; campos?: string[] };
+
+/**
+ * Online: envia na hora e devolve erros de validação para a tela.
+ * Offline (ou rede caiu no meio): guarda na fila e envia sozinho depois.
+ */
+export async function enviarOuEnfileirar(item: Pick<ItemFila, 'chave' | 'metodo' | 'url' | 'corpo'>): Promise<ResultadoEnvio> {
+  if (navigator.onLine) {
+    try {
+      const resp = await fetch(item.url, {
+        method: item.metodo,
+        headers: { 'Content-Type': 'application/json' },
+        body: item.corpo === undefined ? undefined : JSON.stringify(item.corpo),
+        credentials: 'same-origin',
+      });
+      if (resp.ok) return { estado: 'enviado', dados: await resp.json().catch(() => null) };
+      if (resp.status >= 400 && resp.status < 500 && ![401, 408, 429].includes(resp.status)) {
+        const erro = await resp.json().catch(() => null);
+        return { estado: 'erro', mensagem: erro?.erro?.mensagem ?? `Erro ${resp.status}`, campos: erro?.erro?.campos };
+      }
+    } catch {
+      /* sem rede de fato: segue para a fila */
+    }
+  }
+  await enfileirar(item);
+  return { estado: 'na_fila' };
+}
+
+/** Evento disparado quando a fila envia itens (telas podem recarregar dados). */
+export const EVENTO_SINCRONIZADO = 'vigilia:sincronizado';
 
 /**
  * Registro imediato de ocorrência: grava rascunho, cria no servidor e despacha.
@@ -119,7 +158,10 @@ export const contarPendentes = () => bancoLocal.fila.count();
 
 /** Liga o processamento automático ao voltar a conexão e periodicamente. */
 export function iniciarSincronizacao(intervaloMs = 30_000) {
-  const tick = () => void processarFila();
+  const tick = () =>
+    void processarFila().then((r) => {
+      if (r.enviados > 0) window.dispatchEvent(new CustomEvent(EVENTO_SINCRONIZADO, { detail: r }));
+    });
   window.addEventListener('online', tick);
   const t = window.setInterval(tick, intervaloMs);
   tick();

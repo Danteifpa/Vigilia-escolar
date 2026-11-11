@@ -1,31 +1,21 @@
 import { z } from 'zod';
 import { supabaseServidor } from '@/lib/supabase/server';
 import { falha, falhaBanco, falhaValidacao, lerJson, ok } from '@/lib/http/respostas';
+import { checklistSchema, dataPermitida } from '@/modules/escola/checklist.schema';
 import { hojeBelem } from '@/modules/escola/painel';
 
-const checklistSchema = z.object({
-  id: z.string().uuid(),
-  data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  situacao_agua: z.enum(['normal', 'reduzida', 'critica', 'sem_agua']),
-  reservatorio_percentual: z.number().int().min(0).max(100).nullish(),
-  temperatura_max_c: z.number().min(10).max(60).nullish(),
-  nivel_fumaca: z.enum(['ausente', 'leve', 'moderada', 'intensa']),
-  situacao_acesso: z.enum(['normal', 'restrito', 'interrompido']),
-  alunos_presentes: z.number().int().min(0).nullish(),
-  alunos_com_sintomas: z.number().int().min(0).default(0),
-  acoes: z.record(z.boolean()).default({}),
-  observacoes: z.string().max(2000).nullish(),
-});
-
-/** PUT /api/escola/checklist — upsert do checklist do dia (idempotente por escola+data). */
+/** PUT /api/escola/checklist — upsert do checklist (idempotente por escola+data; aceita envio offline atrasado). */
 export async function PUT(req: Request) {
   const corpo = checklistSchema.safeParse(await lerJson(req));
   if (!corpo.success) return falhaValidacao(corpo.error);
+  if (!dataPermitida(corpo.data.data, hojeBelem())) {
+    return falha(422, 'validacao', 'Só é possível registrar o checklist de hoje ou dos 2 dias anteriores.', ['data']);
+  }
   const db = await supabaseServidor();
   const { data, error } = await db
     .from('checklists_diarios')
     // escola_id, bandeira_cor e preenchido_por são definidos pelo trigger no banco
-    .upsert({ ...corpo.data, data: corpo.data.data ?? hojeBelem(), bandeira_cor: 'verde' }, { onConflict: 'escola_id,data' })
+    .upsert({ ...corpo.data, bandeira_cor: 'verde' }, { onConflict: 'escola_id,data' })
     .select()
     .single();
   return error ? falhaBanco(error) : ok(data);
