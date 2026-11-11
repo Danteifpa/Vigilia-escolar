@@ -12,7 +12,8 @@
     "db:test": "node supabase/tests/regras.test.mjs",
     "test": "node --test \"src/**/*.test.ts\"",
     "dev:usuarios": "node --env-file-if-exists=.env.local scripts/criar-usuarios-dev.mjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "dev:verificar": "node --env-file-if-exists=.env.local scripts/verificar-login.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^7.0.5",

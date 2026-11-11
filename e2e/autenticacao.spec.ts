@@ -29,6 +29,16 @@ async function linkDoEmail(page: Page, email: string): Promise<string> {
   return href.replaceAll('&amp;', '&');
 }
 
+// Em falha, registra no log onde a página parou (o CI não guarda capturas acessíveis)
+test.afterEach(async ({ page }, info) => {
+  if (info.status === info.expectedStatus) return;
+  const alertas = await page.locator('[role=alert], [role=status]').allInnerTexts().catch(() => []);
+  console.log(`[diagnóstico] ${info.title}\n  url: ${page.url()}\n  alertas: ${JSON.stringify(alertas.filter(Boolean))}`);
+});
+
+/** Alerta do app (o Next.js também injeta um role="alert" para anunciar rotas). */
+const alerta = (page: Page, texto: string) => page.locator('[role=alert]').filter({ hasText: texto });
+
 test('sem sessão, área restrita leva ao login guardando o destino', async ({ page }) => {
   await page.goto('/escola/checklist?d=1');
   await expect(page).toHaveURL('/entrar?proximo=%2Fescola%2Fchecklist%3Fd%3D1');
@@ -38,7 +48,7 @@ test('sem sessão, área restrita leva ao login guardando o destino', async ({ p
 
 test('senha errada mostra mensagem em português', async ({ page }) => {
   await entrar(page, 'escola@vigilia.dev', 'SenhaErrada123');
-  await expect(page.getByRole('alert')).toContainText('E-mail ou senha incorretos.');
+  await expect(alerta(page, 'E-mail ou senha incorretos.')).toBeVisible();
 });
 
 test('escola entra no próprio painel e não acessa outras áreas', async ({ page }) => {
@@ -86,7 +96,7 @@ test('DRE convida diretor; convidado define senha e cai no painel da escola', as
   await page.getByLabel('E-mail institucional').fill(email);
   await page.getByLabel('Escola', { exact: true }).selectOption({ label: 'EEEFM Exemplo Vigília (fictícia) · INEP 15000001' });
   await page.getByRole('button', { name: 'Enviar convite por e-mail' }).click();
-  await expect(page.getByRole('alert')).toContainText('Já existe uma conta com este e-mail.');
+  await expect(alerta(page, 'Já existe uma conta com este e-mail.')).toBeVisible();
   await sair(page);
 
   // Link do e-mail → definir senha → painel da escola

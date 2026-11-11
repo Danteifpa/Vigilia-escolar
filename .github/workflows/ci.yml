@@ -78,6 +78,9 @@ jobs:
       - name: Criar usuários de teste (escola, DRE, SEDUC)
         run: npm run dev:usuarios
 
+      - name: Conferir login e perfil no token
+        run: npm run dev:verificar
+
       - name: Build de produção
         run: npm run build
 
