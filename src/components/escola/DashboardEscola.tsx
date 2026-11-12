@@ -44,7 +44,11 @@ export function DashboardEscola({ painel, acoesCabecalho }: { painel: PainelEsco
     const canal = sb
       .channel('bandeiras')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'historico_bandeiras' }, () => router.refresh())
-      .subscribe();
+      .subscribe((status, erro) => {
+        // Sem tempo real o painel segue funcionando (atualiza ao navegar); só registra
+        if (status !== 'SUBSCRIBED') console.warn('[realtime] bandeiras:', status, erro?.message ?? '');
+        else console.info('[realtime] bandeiras: conectado');
+      });
     return () => { void sb.removeChannel(canal); };
   }, [router]);
 

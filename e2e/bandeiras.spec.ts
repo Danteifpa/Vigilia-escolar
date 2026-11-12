@@ -33,6 +33,12 @@ const bandeiraDaEscola = (cor: string) => escola.getByRole('heading', { name: ne
 
 test.beforeAll(async ({ browser }) => {
   escola = await abrir(browser, 'escola@vigilia.dev', '/escola');
+  escola.on('console', (m) => { if (/realtime|error/i.test(m.text())) console.log(`[escola console] ${m.type()}: ${m.text()}`); });
+  escola.on('websocket', (ws) => {
+    console.log(`[escola ws] aberto ${ws.url().replace(/apikey=[^&]+/, 'apikey=…')}`);
+    ws.on('framereceived', (f) => { const t = String(f.payload); if (!/heartbeat|phx_reply.*"ok","response":\{\}/.test(t)) console.log(`[escola ws ←] ${t.slice(0, 300)}`); });
+    ws.on('close', () => console.log('[escola ws] fechado'));
+  });
   estadual = await abrir(browser, 'estadual@vigilia.dev', '/estadual');
   await estadual.getByRole('link', { name: 'Bandeiras' }).click();
   await expect(estadual).toHaveURL('/estadual/bandeiras');
