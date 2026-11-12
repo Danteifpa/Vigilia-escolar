@@ -17,7 +17,7 @@ Legenda: ✅ feito · 🟡 em andamento · ⬜ a fazer
 - ✅ Painel, banner da bandeira, ações obrigatórias, indicadores, fila offline, PWA base
 - ✅ Formulário do checklist (react-hook-form + zod), funcionando sem internet
 - ✅ PWA não recarrega a página ao reconectar (preserva formulários)
-- ⬜ Realtime: mudança de bandeira sem recarregar
+- ✅ Realtime: mudança de bandeira chega ao painel da escola sem recarregar
 - ⬜ Ícones do PWA e teste de instalação em Android
 - ⬜ Tela de pendências da fila offline · histórico de 7 dias
 
@@ -30,7 +30,8 @@ Legenda: ✅ feito · 🟡 em andamento · ⬜ a fazer
 ## Fase 4 — Painéis DRE e Gestão Estadual
 - 🟡 Resumo inicial com contadores (provisório)
 - ⬜ DRE: fila de triagem, escolas por bandeira, escolas sem checklist, tramitação, Realtime
-- ⬜ Gestão Estadual: visão estadual, decretação de bandeiras, regime pedagógico, exportação CSV
+- ✅ Gestão Estadual: decretação de bandeiras (lote por município ou por escola), regime pedagógico, revogação, histórico
+- ⬜ Gestão Estadual: visão estadual consolidada, exportação CSV
 
 ## Fase 5 — Piloto e ajustes finais
 - ⬜ Piloto em uma DRE + polo ribeirinho · LGPD · Sentry e backups · manual e treinamento
