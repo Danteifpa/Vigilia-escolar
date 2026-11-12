@@ -38,6 +38,14 @@ test.beforeAll(async ({ browser }) => {
     console.log(`[escola ws] aberto ${ws.url().replace(/apikey=[^&]+/, 'apikey=…')}`);
     ws.on('framereceived', (f) => { const t = String(f.payload); if (!/heartbeat|phx_reply.*"ok","response":\{\}/.test(t)) console.log(`[escola ws ←] ${t.slice(0, 300)}`); });
     ws.on('close', () => console.log('[escola ws] fechado'));
+    ws.on('framesent', (f) => {
+      const t = String(f.payload);
+      const token = /"access_token":"([^"]+)"/.exec(t)?.[1];
+      if (token) {
+        const c = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString());
+        console.log(`[escola ws →] ${/phx_join|access_token/.exec(t)?.[0]} role=${c.role} sub=${c.sub ?? '-'} perfil=${c.app_perfil ?? '-'}`);
+      } else if (/phx_join/.test(t)) console.log(`[escola ws →] phx_join SEM access_token`);
+    });
   });
   estadual = await abrir(browser, 'estadual@vigilia.dev', '/estadual');
   await estadual.getByRole('link', { name: 'Bandeiras' }).click();
