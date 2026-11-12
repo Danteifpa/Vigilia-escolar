@@ -24,12 +24,14 @@ Legenda: ✅ feito · 🟡 em andamento · ⬜ a fazer
 ## Fase 3 — Memorando Anexo I e PDF
 - ✅ Tabelas, máquina de estados, API rascunho/envio/tramitação
 - ⬜ **Conferir campos com o modelo oficial (bloqueante)**
-- ⬜ Formulário em etapas com salvamento local · fotos no Storage · linha do tempo
+- ✅ Linha do tempo (trilha) do memorando
+- ⬜ Formulário em etapas com salvamento local · fotos no Storage
 - ⬜ PDF (`@react-pdf/renderer`) em `/api/memorandos/[id]/pdf` com QR de verificação
 
 ## Fase 4 — Painéis DRE e Gestão Estadual
-- 🟡 Resumo inicial com contadores (provisório)
-- ⬜ DRE: fila de triagem, escolas por bandeira, escolas sem checklist, tramitação, Realtime
+- ✅ DRE: fila de triagem, acompanhamento, escolas do polo (bandeira, condições do dia, sem checklist), Realtime
+- ✅ Tela do memorando com trilha e tramitação (DRE, Gestão Estadual; escola acompanha e vê o parecer)
+- ✅ Gestão Estadual: fila de pedidos encaminhados pelas DREs
 - ✅ Gestão Estadual: decretação de bandeiras (lote por município ou por escola), regime pedagógico, revogação, histórico
 - ⬜ Gestão Estadual: visão estadual consolidada, exportação CSV
 
