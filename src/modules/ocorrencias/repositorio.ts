@@ -25,7 +25,8 @@ export async function listarMemorandos(
 export async function obterMemorando(db: SupabaseClient, id: string) {
   return db
     .from('memorandos_ocorrencia')
-    .select('*, tramitacoes:memorando_tramitacoes(acao, de_status, para_status, parecer, ator_perfil, created_at), anexos:memorando_anexos(id, storage_path, mime_type, legenda)')
+    .select('*, escola:escolas(nome, codigo_inep, municipio:municipios(nome)), tramitacoes:memorando_tramitacoes(id, acao, de_status, para_status, parecer, ator_perfil, created_at, ator:users(nome)), anexos:memorando_anexos(id, storage_path, mime_type, legenda)')
+    .order('id', { referencedTable: 'memorando_tramitacoes', ascending: true })
     .eq('id', id)
     .single();
 }

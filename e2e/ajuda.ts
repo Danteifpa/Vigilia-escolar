@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test';
+import { expect, type Browser, type Page } from '@playwright/test';
 
 export const SENHA = process.env.SENHA_DEV ?? 'SenhaDev2026';
 
@@ -22,3 +22,20 @@ export const alerta = (page: Page, texto: string | RegExp) => page.locator('[rol
 /** Clica no cartão de uma opção (o radio nativo fica oculto atrás do cartão). */
 export const escolher = (page: Page, grupo: string, opcao: string) =>
   page.getByRole('group', { name: grupo }).locator('label').filter({ hasText: new RegExp(`^${opcao}`) }).click();
+
+/** Abre um navegador isolado (contexto próprio), já logado e na página indicada. */
+export async function abrirComo(browser: Browser, email: string, destino: string) {
+  const page = await (await browser.newContext({ locale: 'pt-BR', timezoneId: 'America/Belem' })).newPage();
+  await entrar(page, email);
+  await page.goto(destino);
+  return page;
+}
+
+/** Registra no log onde cada página parou quando um teste falha (o CI não guarda capturas acessíveis). */
+export async function diagnosticar(titulo: string, paginas: Record<string, Page | undefined>) {
+  for (const [nome, p] of Object.entries(paginas)) {
+    if (!p) continue;
+    const alertas = await p.locator('[role=alert], [role=status]').allInnerTexts().catch(() => []);
+    console.log(`[diagnóstico] ${titulo} · ${nome}\n  url: ${p.url()}\n  alertas: ${JSON.stringify(alertas.filter(Boolean))}`);
+  }
+}
