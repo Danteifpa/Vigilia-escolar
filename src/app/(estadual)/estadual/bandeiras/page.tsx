@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { FormularioDecreto, type AlvoEscola, type AlvoMunicipio } from '@/components/bandeiras/FormularioDecreto';
 import { RevogarBandeira } from '@/components/bandeiras/RevogarBandeira';
 import { formatarDataHora } from '@/components/escola/formatos';
-import { Badge, Card, CardHeader } from '@/components/ui';
+import { Alert, Badge, Card, CardHeader } from '@/components/ui';
 import { exigirPerfil } from '@/modules/auth/sessao';
 import { BANDEIRAS, ROTULO_REGIME } from '@/modules/bandeiras/protocolo';
 import type { CorBandeira, RegimePedagogico } from '@/types/dominio';
@@ -21,7 +21,8 @@ interface Decreto {
   autor: { nome: string } | null;
 }
 
-export default async function PaginaBandeiras() {
+export default async function PaginaBandeiras({ searchParams }: { searchParams: Promise<{ aviso?: string }> }) {
+  const { aviso } = await searchParams;
   const { db } = await exigirPerfil('estadual');
 
   const [municipios, escolas, vigentes, efetivas, historico] = await Promise.all([
@@ -58,6 +59,10 @@ export default async function PaginaBandeiras() {
         <h1 className="text-2xl font-black">Bandeiras</h1>
         <p className="text-sm text-slate-600">Decrete a bandeira por município ou para escolas específicas. A mudança chega aos painéis na hora.</p>
       </div>
+
+      {aviso === 'revogada' && (
+        <Alert tom="sucesso">Decreto da escola revogado. Ela volta a seguir a bandeira do município.</Alert>
+      )}
 
       <ul className="grid grid-cols-3 gap-3">
         {(['verde', 'amarela', 'vermelha'] as const).map((c) => (

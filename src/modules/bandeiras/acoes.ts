@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { exigirPerfil } from '@/modules/auth/sessao';
 import { BANDEIRAS } from './protocolo';
@@ -82,5 +83,7 @@ export async function revogarBandeiraEscola(_anterior: EstadoAcao, fd: FormData)
   if (error) return { ok: false, mensagem: error.code === 'P0002' ? error.message : 'Não foi possível revogar.' };
 
   revalidatePath('/estadual/bandeiras');
-  return { ok: true, mensagem: 'Decreto da escola revogado. Ela volta a seguir a bandeira do município.' };
+  // A escola sai da lista "com bandeira própria" (e o formulário some com ela):
+  // a confirmação é exibida no topo da página.
+  redirect('/estadual/bandeiras?aviso=revogada');
 }
