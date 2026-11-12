@@ -13,9 +13,11 @@ const PONTO: Record<Tom, string> = { ok: 'bg-emerald-600', atencao: 'bg-amber-50
  * Grupo de opções em cartões grandes (bom para toque em celular).
  * Acessível: fieldset/legend + radios nativos.
  */
-export function OpcoesRadio({ legenda, registro, opcoes, erro, colunas = 2 }: {
+export function OpcoesRadio({ legenda, registro, opcoes, erro, colunas = 2, padrao }: {
   legenda: string;
-  registro: UseFormRegisterReturn;
+  /** register() do react-hook-form, ou só { name, onChange } em formulários nativos */
+  registro: Pick<UseFormRegisterReturn, 'name'> & Partial<UseFormRegisterReturn>;
+  padrao?: string;
   opcoes: readonly { valor: string; rotulo: string; descricao?: string; tom: Tom }[];
   erro?: string;
   colunas?: 2 | 3 | 4;
@@ -29,7 +31,7 @@ export function OpcoesRadio({ legenda, registro, opcoes, erro, colunas = 2 }: {
       <div className={cn('grid gap-2', colunas === 2 && 'grid-cols-2', colunas === 3 && 'grid-cols-1 sm:grid-cols-3', colunas === 4 && 'grid-cols-2 sm:grid-cols-4')}>
         {opcoes.map((o) => (
           <label key={o.valor} className="relative cursor-pointer">
-            <input type="radio" value={o.valor} {...registro} className="peer sr-only" />
+            <input type="radio" value={o.valor} defaultChecked={padrao !== undefined ? o.valor === padrao : undefined} {...registro} className="peer sr-only" />
             <span
               className={cn(
                 'flex h-full flex-col rounded-xl bg-white p-3 ring-1 ring-slate-300 transition hover:bg-slate-50 peer-focus-visible:ring-4 peer-focus-visible:ring-sky-300',

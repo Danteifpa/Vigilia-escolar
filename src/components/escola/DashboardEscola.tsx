@@ -4,6 +4,7 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { CloudOff, RefreshCw, School, Siren, Wifi } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { contarPendentes, enfileirar, EVENTO_SINCRONIZADO } from '@/lib/offline/fila';
+import { supabaseNavegador } from '@/lib/supabase/client';
 import type { PainelEscola } from '@/types/dominio';
 import { AcoesObrigatorias } from './AcoesObrigatorias';
 import { BandeiraBanner } from './BandeiraBanner';
@@ -36,6 +37,16 @@ export function DashboardEscola({ painel, acoesCabecalho }: { painel: PainelEsco
   useEffect(() => setFeitas(checklistHoje?.acoes ?? {}), [checklistHoje?.updated_at]); // eslint-disable-line react-hooks/exhaustive-deps
   const { online, pendentes } = useConexao();
   const router = useRouter();
+
+  // Realtime: decreto ou revogação de bandeira recarrega o painel na hora
+  useEffect(() => {
+    const sb = supabaseNavegador();
+    const canal = sb
+      .channel('bandeiras')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'historico_bandeiras' }, () => router.refresh())
+      .subscribe();
+    return () => { void sb.removeChannel(canal); };
+  }, [router]);
 
   // Quando a fila offline envia dados, recarrega o painel com a versão do servidor
   useEffect(() => {
