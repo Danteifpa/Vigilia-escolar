@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#0f172a"/>
+  <g transform="translate(0,0) scale(1.0)">
+    <defs><clipPath id="escudo"><path d="M256 64 L416 120 V240 C416 340 348 412 256 452 C164 412 96 340 96 240 V120 Z"/></clipPath></defs>
+    <g clip-path="url(#escudo)">
+      <rect x="80" y="40" width="352" height="160" fill="#059669"/>
+      <rect x="80" y="200" width="352" height="110" fill="#f59e0b"/>
+      <rect x="80" y="310" width="352" height="160" fill="#dc2626"/>
+    </g>
+    <path d="M256 64 L416 120 V240 C416 340 348 412 256 452 C164 412 96 340 96 240 V120 Z" fill="none" stroke="#fff" stroke-width="22" stroke-linejoin="round"/>
+    <path d="M196 252 L240 296 L322 206" fill="none" stroke="#fff" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

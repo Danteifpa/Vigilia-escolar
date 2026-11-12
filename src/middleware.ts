@@ -15,5 +15,5 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   // Fora: assets, PWA e API (as rotas de API respondem 401/403 por conta própria)
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|sw.js|swe-worker|manifest.webmanifest|icons/|api/).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|sw.js|swe-worker|manifest.webmanifest|icons/|icon.svg|apple-icon.png|api/).*)'],
 };
