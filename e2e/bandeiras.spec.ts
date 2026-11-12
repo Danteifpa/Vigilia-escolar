@@ -19,7 +19,7 @@ async function abrir(browser: Browser, email: string, destino: string) {
 }
 
 async function decretar(opcoes: { escopo?: 'Municípios' | 'Escolas específicas'; alvo: RegExp; cor: string; regime?: string; justificativa: string }) {
-  if (opcoes.escopo) await estadual.locator('label').filter({ hasText: opcoes.escopo }).click();
+  await estadual.locator('label').filter({ hasText: opcoes.escopo ?? 'Municípios' }).click();
   await estadual.getByRole('checkbox', { name: opcoes.alvo }).check();
   await estadual.getByRole('group', { name: '2. Nova bandeira' }).locator('label').filter({ hasText: new RegExp(`^${opcoes.cor}`) }).click();
   if (opcoes.regime) await estadual.getByLabel('3. Regime pedagógico').selectOption({ label: opcoes.regime });
