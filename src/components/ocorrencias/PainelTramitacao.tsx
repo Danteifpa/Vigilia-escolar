@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import { Alert, Button, Field, Textarea } from '@/components/ui';
 import type { Perfil } from '@/modules/auth/perfis';
 import { tramitar, type EstadoTramitacao } from '@/modules/ocorrencias/acoes';
@@ -23,6 +23,9 @@ export function PainelTramitacao({ id, status, perfil }: { id: string; status: S
   const [estado, acao, enviando] = useActionState<EstadoTramitacao, FormData>(tramitar, {});
   const [parecer, setParecer] = useState('');
   const [erroParecer, setErroParecer] = useState<string | null>(null);
+  // O Next.js não envia o botão clicado (submitter) nas Server Actions: a ação
+  // escolhida vai num campo oculto, preenchido no clique, antes do envio.
+  const acaoRef = useRef<HTMLInputElement>(null);
   const acoes = acoesDisponiveis(status, perfil);
 
   // Parecer só é limpo depois de uma ação registrada com sucesso
@@ -39,8 +42,7 @@ export function PainelTramitacao({ id, status, perfil }: { id: string; status: S
           action={acao}
           className="space-y-3"
           onSubmit={(ev) => {
-            const botao = (ev.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
-            const regra = acoes.find((a) => a.acao === botao?.value);
+            const regra = acoes.find((a) => a.acao === acaoRef.current?.value);
             setErroParecer(null);
             if (regra?.exigeParecer && !parecer.trim()) {
               ev.preventDefault();
@@ -49,6 +51,7 @@ export function PainelTramitacao({ id, status, perfil }: { id: string; status: S
           }}
         >
           <input type="hidden" name="id" value={id} />
+          <input type="hidden" name="acao" ref={acaoRef} defaultValue="" />
           {algumaExigeParecer && (
             <Field id="parecer" rotulo="Parecer" dica="Obrigatório para devolver, encaminhar e atender. A escola verá este texto." erro={erroParecer ?? undefined}>
               <Textarea id="parecer" name="parecer" value={parecer} onChange={(e) => setParecer(e.target.value)} maxLength={4000} className="min-h-24"
@@ -57,7 +60,8 @@ export function PainelTramitacao({ id, status, perfil }: { id: string; status: S
           )}
           <div className="flex flex-wrap gap-2">
             {acoes.map((a) => (
-              <Button key={a.acao} type="submit" name="acao" value={a.acao} variante={VARIANTE[a.acao] ?? 'secundario'} disabled={enviando}>
+              <Button key={a.acao} type="submit" variante={VARIANTE[a.acao] ?? 'secundario'} disabled={enviando}
+                onClick={() => { if (acaoRef.current) acaoRef.current.value = a.acao; }}>
                 {ROTULO[a.acao](perfil)}
               </Button>
             ))}
