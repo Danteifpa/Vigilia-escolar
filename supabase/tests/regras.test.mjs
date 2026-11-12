@@ -131,4 +131,28 @@ await expectErr('usuário comum executa o hook', () => as('E1', `select public.c
 r = await as('E2', `select count(*)::int n from memorandos_ocorrencia`);
 r.rows[0].n === 0 ? ok('desativado perde acesso imediato via RLS') : fail(JSON.stringify(r.rows));
 
+console.log('\nDecretos de bandeira (lote e revogação)');
+await expectErr('escola decreta em lote', () => as('E1', `select * from decretar_bandeiras('municipio', array['1501402'], 'amarela', 'presencial', 'tentativa indevida da escola')`), '42501');
+await expectErr('DRE decreta em lote', () => as('D', `select * from decretar_bandeiras('municipio', array['1501402'], 'amarela', 'presencial', 'tentativa indevida da DRE')`), '42501');
+await expectErr('lote vazio', () => as('S', `select * from decretar_bandeiras('municipio', array[]::text[], 'amarela', 'presencial', 'sem alvos selecionados')`), '23514');
+await expectErr('lote com regime incoerente não grava nada', () => as('S',
+  `select * from decretar_bandeiras('municipio', array['1501402','1500107'], 'amarela', 'cemep', 'regime incompatível com a cor')`), '23514');
+r = await as('S', `select count(*)::int n from historico_bandeiras where municipio_id = 1500107`);
+r.rows[0].n === 0 ? ok('falha no lote desfaz tudo (atomicidade)') : fail(JSON.stringify(r.rows));
+
+r = await as('S', `select municipio_id, cor, decretada_por from decretar_bandeiras('municipio', array['1501402','1500107'], 'amarela', 'presencial', 'Lote: focos de calor na região', 'Ata 13/2026')`);
+r.rows.length === 2 && r.rows.every((x) => x.cor === 'amarela' && x.decretada_por === U.S) ? ok('lote de 2 municípios decretado') : fail(JSON.stringify(r.rows));
+r = await as('S', `select escola_id, cor, origem from vw_bandeira_vigente order by escola_id`);
+r.rows[0].cor === 'amarela' && r.rows[0].origem === 'municipio' && r.rows[1].cor === 'vermelha' && r.rows[1].origem === 'escola'
+  ? ok('decreto da escola (vermelha) segue prevalecendo sobre o município (amarela)') : fail(JSON.stringify(r.rows));
+
+await expectErr('escola revoga decreto', () => as('E1', `select revogar_bandeira_escola('00000000-0000-0000-0000-00000000e502', 'tentativa indevida da escola')`), '42501');
+await expectErr('revogação sem motivo', () => as('S', `select revogar_bandeira_escola('00000000-0000-0000-0000-00000000e502', 'curto')`), '23514');
+await as('S', `select revogar_bandeira_escola('00000000-0000-0000-0000-00000000e502', 'Acesso fluvial restabelecido')`);
+r = await as('S', `select v.cor, v.origem, h.revogada_por, h.motivo_revogacao from vw_bandeira_vigente v,
+  historico_bandeiras h where v.escola_id = '00000000-0000-0000-0000-00000000e502' and h.escola_id = v.escola_id and h.escopo = 'escola'`);
+r.rows[0].cor === 'amarela' && r.rows[0].origem === 'municipio' && r.rows[0].revogada_por === U.S
+  ? ok('revogada: escola volta à bandeira do município, com autor e motivo registrados') : fail(JSON.stringify(r.rows));
+await expectErr('revogar de novo', () => as('S', `select revogar_bandeira_escola('00000000-0000-0000-0000-00000000e502', 'Acesso fluvial restabelecido')`), 'P0002');
+
 console.log(process.exitCode ? '\nFALHOU' : '\nTODOS OS TESTES PASSARAM');

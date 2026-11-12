@@ -8,7 +8,7 @@ export default async function LayoutEstadual({ children }: { children: React.Rea
   return (
     <>
       <CabecalhoArea perfil="estadual" nome={perfil.nome}
-        links={[{ href: '/estadual', rotulo: 'Painel' }, { href: '/estadual/usuarios', rotulo: 'Usuários' }]} />
+        links={[{ href: '/estadual', rotulo: 'Painel' }, { href: '/estadual/bandeiras', rotulo: 'Bandeiras' }, { href: '/estadual/usuarios', rotulo: 'Usuários' }]} />
       <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>
     </>
   );
