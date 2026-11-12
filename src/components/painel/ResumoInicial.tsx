@@ -1,4 +1,4 @@
-import { Badge, Card, CardHeader } from '@/components/ui';
+import { Badge } from '@/components/ui';
 import { exigirPerfil } from '@/modules/auth/sessao';
 
 /**
@@ -40,9 +40,6 @@ export async function ResumoInicial() {
           </li>
         ))}
       </ul>
-      <Card>
-        <CardHeader titulo="Em construção" descricao="Fila de triagem, mapa de escolas por bandeira e decretação chegam na Fase 4 do roteiro." />
-      </Card>
     </div>
   );
 }
